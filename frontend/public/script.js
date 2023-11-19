@@ -14,3 +14,15 @@ let drawControl = new L.Control.Draw({
   }
 });
 map.addControl(drawControl);
+
+// Event listener for when a GeoJSON file is uploaded
+document.getElementById('geojson-file-input').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+  
+    reader.onload = function (event) {
+      geojsonData = JSON.parse(event.target.result);
+    };
+  
+    reader.readAsText(file);
+  });
