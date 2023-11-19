@@ -26,3 +26,29 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
   
     reader.readAsText(file);
   });
+
+// Event listener for the visualization button
+document.getElementById('resolution-slider').addEventListener('change', function () {
+    visualizeData();
+  });
+  
+  // Function to upload GeoJSON
+  function uploadGeoJSON() {
+    // You can add logic here to send the GeoJSON data to the server
+    console.log('GeoJSON uploaded:', geojsonData);
+  }
+  
+  // Function to visualize data on the map
+  function visualizeData() {
+    const resolution = document.getElementById('resolution-slider').value;
+    
+    // data on the map based on the selected resolution
+    console.log('Visualizing data with resolution:', resolution);
+  }
+  
+  // Function to save data
+  function saveData() {
+    const inputData = document.getElementById('data-input').value;
+    // save the data
+    console.log('Data saved:', inputData);
+  }
