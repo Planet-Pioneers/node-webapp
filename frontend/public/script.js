@@ -52,3 +52,16 @@ document.getElementById('resolution-slider').addEventListener('change', function
     // save the data
     console.log('Data saved:', inputData);
   }
+
+  // Function to download training data
+function downloadTrainingData() {
+    // You can add logic here to initiate the download of training data
+    console.log('Downloading Training Data');
+  }
+  
+  // Function to download prediction
+  function downloadPrediction() {
+    // You can add logic here to initiate the download of prediction data
+    console.log('Downloading Prediction');
+  }
+  

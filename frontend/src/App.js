@@ -30,6 +30,13 @@ function App() {
           <button className="btn btn-success" onClick={() => visualizeData()}>Visualize Data</button>
         </div>
 
+        {/* Download Section */}
+        <div className="download-section">
+          <h2>Download</h2>
+          <button className="btn btn-info" onClick={() => downloadTrainingData()}>Download Training Data</button>
+          <button className="btn btn-info" onClick={() => downloadPrediction()}>Download Prediction</button>
+        </div>
+
       </header>
       {/* Footer */}
       <footer className="bg-light text-center text-lg-start mt-4">
@@ -54,4 +61,11 @@ function visualizeData() {
   console.log('Visualize Data logic');
 }
 
+function downloadTrainingData() {
+  console.log('Download Training Data logic');
+}
+
+function downloadPrediction() {
+  console.log('Download Prediction logic');
+}
 export default App;
