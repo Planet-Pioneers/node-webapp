@@ -15,6 +15,30 @@ let drawControl = new L.Control.Draw({
 });
 map.addControl(drawControl);
 
+// Event handler for when a shape is drawn
+map.on('draw:created', function(event) {
+  let layer = event.layer;
+
+  // Add the drawn shape to the map
+  map.addLayer(layer);
+
+  // Check if the drawn shape is a polygon
+  if (layer instanceof L.Polygon) {
+    // Get the coordinates of the polygon's center
+    let center = layer.getBounds().getCenter();
+
+  // Get the coordinates of the polygon
+  let coordinates = layer.getLatLngs()[0]; // Assuming it's a simple polygon, getLatLngs returns an array of LatLng
+
+  // Convert coordinates to a string for display
+  let coordinatesString = coordinates.map(coord => `[${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]`).join(', ');
+
+  // Open a popup at the center of the polygon with coordinates
+  layer.bindPopup(`Polygon Coordinates: ${coordinatesString}`).openPopup();
+}
+});
+
+
 // Event listener for when a GeoJSON file is uploaded
 document.getElementById('geojson-file-input').addEventListener('change', function (e) {
     const file = e.target.files[0];
