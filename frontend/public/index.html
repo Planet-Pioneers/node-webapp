@@ -6,63 +6,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Earth Classifier</title>
 
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin="">
+ <!-- Bootstrap CSS -->
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+ integrity="sha384-rbs5jQhj1YRJxQUn8AdL5GcA9gS8c9IP0A1pb3a+9BmC1aPslktF+q3tVODLyFhH"
+ crossorigin="anonymous">
 
-         <!-- Leaflet Draw CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.css" />
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+ crossorigin="">
+
+<!-- Leaflet Draw CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.css" />
+
+<!-- Externe CSS-Datei -->
+<link rel="stylesheet" href="../src/styles.css">
 
 </head>
 
-<body>
-    <h1>Earth Classifier</h1>
+<body class="bg-light">
 
-    <!-- Map Section -->
-    <div id="map" style="height: 400px;"></div>
+  <div class="container-fluid">
+        <h1 class="display-4">Earth Classifier</h1>
 
-    <!-- GeoJSON Upload Section -->
-    <h2>Upload GeoJSON</h2>
-    <p>Man kann entweder Dateien hochladen oder das Textfeld nutzen.</p>
-    <input type="file" id="geojson-file-input" />
-    <button onclick="uploadGeoJSON()">Upload GeoJSON</button>
+        <!-- Map Section -->
+        <div id="map" style="height: 400px;"></div>
 
- <!-- Data Input Section -->
-    <div>
-        <textarea id="data-input" rows="4" cols="50" placeholder="Enter data..."></textarea>
-        <button onclick="saveData()">Save Data</button>
+        <!-- GeoJSON Upload Section -->
+        <h2 class="mt-4">Upload GeoJSON</h2>
+        <p> Datei hochladen:</p>
+        <div class="mb-3">
+            <input class="form-control" type="file" id="geojson-file-input" />
+        </div>
+
+        <!-- Data Input Section -->
+        <p> Textfeld für GeoJSON:</p>
+        <div class="mt-4">
+            <textarea class="form-control" id="data-input" rows="4" placeholder="Enter data..."></textarea>
+        </div>
+        <p> Daten speichern:</p>
+        <div class="mt-4">
+          <button class="btn btn-primary mt-2" onclick="saveData()">Save Data</button>
+        </div>
+
+        <!-- Visualization Section -->
+        <h2 class="mt-4">Visualization</h2>
+        <div class="mb-3">
+            <label for="resolution-slider" class="form-label">Resolution:</label>
+            <input type="range" class="form-range" id="resolution-slider" min="1" max="10" value="5" />
+        </div>
+         <!-- Berechnung -->
+         <h2 class="mt-4">Berechnung der Daten</h2>
+         <div class="mb-3">
+          <button class="btn btn-primary" onclick="visualizeData()">Calculate Data</button>
+         </div>
+
+        <!-- Download Section -->
+        <h2 class="mt-4">Download</h2>
+        <button class="btn btn-primary" onclick="downloadTrainingData()">Download Training Data</button>
+        <button class="btn btn-primary" onclick="downloadPrediction()">Download Prediction</button>
     </div>
 
-    <!-- Visualization Section -->
-    <h2>Visualization</h2>
-    <input type="range" id="resolution-slider" min="1" max="10" value="5" />
-    <button onclick="visualizeData()">Calculate Data</button>
+    <!-- Footer -->
+    <footer class="bg-light text-center text-lg-start mt-4">
+        <div class="text-center p-3" style="background-color: #f8f9fa;">
+            © 2023 Sonja, Simon, Inka, Elena, Arne
+        </div>
+    </footer>
 
-    <!-- Download Section -->
-    <h2>Download</h2>
-    <button onclick="downloadTrainingData()">Download Training Data</button>
-    <button onclick="downloadPrediction()">Download Prediction</button>
-    
-  <!----Footer--->
-  <footer class="bg-light text-center text-lg-start mt-4">
-    <div class="text-center p-3" style="background-color: #f8f9fa;">
-      © 2023 Sonja, Simon, Inka, Elena, Arne
-    </div>
-  </footer>
+    <!-- Bootstrap JS and other scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-csiFv3kxPq3jkgBTKbI9NlOWCV5g8reZXEGrwG1PHaVRcD5uZ0MEbiHqZ2G1w7U"
+            crossorigin="anonymous"></script>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
 
-     <!-- Leaflet.Draw JS -->
-  <script src="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.js"></script>
-  <script type="module" src="../js/interaction_map.js" defer></script>
-  <!-- JavaScript-Datei -->
+    <!-- Leaflet.Draw JS -->
+    <script src="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.js"></script>
+    <script type="module" src="../js/interaction_map.js" defer></script>
 
+    <!-- Your JavaScript file -->
     <script src="script.js"></script>
-
 </body>
 
 </html>
