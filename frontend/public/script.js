@@ -25,7 +25,6 @@ map.addControl(drawControl);
 
 
 
-
 // Function to handle draw events
 map.on('draw:created', function (e) {
   const type = e.layerType;
@@ -70,6 +69,7 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
   
     reader.readAsText(file);
   });
+
 
 // Event listener for the visualization button
 document.getElementById('resolution-slider').addEventListener('change', function () {
