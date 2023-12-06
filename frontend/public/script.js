@@ -23,8 +23,6 @@ let drawControl = new L.Control.Draw({
 });
 map.addControl(drawControl);
 
-
-
 // Function to handle draw events
 map.on('draw:created', function (e) {
   const type = e.layerType;
@@ -40,7 +38,7 @@ map.on('draw:created', function (e) {
       let coordinates = layer.getLatLngs()[0]; // Assuming it's a simple polygon, getLatLngs returns an array of LatLng
 
       // Convert coordinates to a string for display
-      let coordinatesString = coordinates.map(coord => [${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]).join(', ');
+      let coordinatesString = coordinates.map(coord => `[${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]`).join(', ');
 
       // Open a popup with date input fields and polygon coordinates
       layer.bindPopup(`
@@ -56,6 +54,19 @@ map.on('draw:created', function (e) {
 });
 
 
+// Function to save time range
+function saveTime() {
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+
+  // You can save the start and end dates or perform any other action with them
+  console.log('Start Date:', startDate);
+  console.log('End Date:', endDate);
+
+  // Close the popup after saving
+  map.closePopup();
+}
+
 // Event listener for when a GeoJSON file is uploaded
 document.getElementById('geojson-file-input').addEventListener('change', function (e) {
     const file = e.target.files[0];
@@ -69,7 +80,6 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
   
     reader.readAsText(file);
   });
-
 
 // Event listener for the visualization button
 document.getElementById('resolution-slider').addEventListener('change', function () {
