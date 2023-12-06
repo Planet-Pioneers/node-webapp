@@ -41,15 +41,37 @@ map.on('draw:created', function(event) {
 
 // Event listener for when a GeoJSON file is uploaded
 document.getElementById('geojson-file-input').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-  
-    reader.onload = function (event) {
-      geojsonData = JSON.parse(event.target.result);
-    };
-  
-    reader.readAsText(file);
-  });
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+      const geojsonData = JSON.parse(event.target.result);
+
+      // Clear existing layers before adding new ones
+      drawnItems.clearLayers();
+
+      // Add GeoJSON to the map
+      L.geoJSON(geojsonData, {
+          onEachFeature: function (feature, layer) {
+              if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+                  // Assuming the GeoJSON contains polygons or multipolygons
+                  drawnItems.addLayer(layer);
+
+                  // Open a popup with date input fields for the time range
+                  layer.bindPopup(`
+                      <label for="start-date">Start Date:</label>
+                      <input type="date" id="start-date"><br>
+                      <label for="end-date">End Date:</label>
+                      <input type="date" id="end-date"><br>
+                      <button onclick="saveTime()">Save Time</button>
+                  `).openPopup();
+              }
+          }
+      }).addTo(map);
+  };
+
+  reader.readAsText(file);
+});
 
 // Event listener for the visualization button
 document.getElementById('resolution-slider').addEventListener('change', function () {
