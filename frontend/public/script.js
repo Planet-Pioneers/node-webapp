@@ -2,7 +2,11 @@
 const map = L.map('map').setView([51.96236, 7.62571], 15);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// Only allow markers and polygons
+// Variables to store drawn layers
+let drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+// Only allow polygons and rectangles
 let drawControl = new L.Control.Draw({
   draw: {
     rectangle: true,
@@ -11,31 +15,45 @@ let drawControl = new L.Control.Draw({
     circlemarker: false,
     marker: false,
     polyline: false,
+  },
+  edit: {
+    featureGroup: drawnItems,
+    remove: false,
   }
 });
 map.addControl(drawControl);
 
-// Event handler for when a shape is drawn
-map.on('draw:created', function(event) {
-  let layer = event.layer;
 
-  // Add the drawn shape to the map
-  map.addLayer(layer);
 
-  // Check if the drawn shape is a polygon
-  if (layer instanceof L.Polygon) {
-    // Get the coordinates of the polygon's center
-    let center = layer.getBounds().getCenter();
 
-  // Get the coordinates of the polygon
-  let coordinates = layer.getLatLngs()[0]; // Assuming it's a simple polygon, getLatLngs returns an array of LatLng
+// Function to handle draw events
+map.on('draw:created', function (e) {
+  const type = e.layerType;
+  const layer = e.layer;
 
-  // Convert coordinates to a string for display
-  let coordinatesString = coordinates.map(coord => `[${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]`).join(', ');
+  if (type === 'polygon' || type === 'rectangle') {
+    // Add the drawn layer to the map
+    drawnItems.addLayer(layer);
 
-  // Open a popup at the center of the polygon with coordinates
-  layer.bindPopup(`Polygon Coordinates: ${coordinatesString}`).openPopup();
-}
+    // Check if the drawn shape is a polygon
+    if (layer instanceof L.Polygon) {
+      // Get the coordinates of the polygon
+      let coordinates = layer.getLatLngs()[0]; // Assuming it's a simple polygon, getLatLngs returns an array of LatLng
+
+      // Convert coordinates to a string for display
+      let coordinatesString = coordinates.map(coord => [${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]).join(', ');
+
+      // Open a popup with date input fields and polygon coordinates
+      layer.bindPopup(`
+        <label for="start-date">Start Date:</label>
+        <input type="date" id="start-date"><br>
+        <label for="end-date">End Date:</label>
+        <input type="date" id="end-date"><br>
+        <p>Polygon Coordinates: ${coordinatesString}</p>
+        <button onclick="saveTime()">Save Time</button>
+      `).openPopup();
+    }
+  }
 });
 
 
@@ -46,6 +64,8 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
   
     reader.onload = function (event) {
       geojsonData = JSON.parse(event.target.result);
+      // Add GeoJSON to the map
+      L.geoJSON(geojsonData).addTo(map);
     };
   
     reader.readAsText(file);
@@ -55,37 +75,41 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
 document.getElementById('resolution-slider').addEventListener('change', function () {
     visualizeData();
   });
-  
-  // Function to upload GeoJSON
-  function uploadGeoJSON() {
+
+// Function to upload GeoJSON
+function uploadGeoJSON() {
     // You can add logic here to send the GeoJSON data to the server
     console.log('GeoJSON uploaded:', geojsonData);
-  }
-  
-  // Function to visualize data on the map
-  function visualizeData() {
-    const resolution = document.getElementById('resolution-slider').value;
-    
-    // data on the map based on the selected resolution
-    console.log('Visualizing data with resolution:', resolution);
-  }
-  
-  // Function to save data
-  function saveData() {
-    const inputData = document.getElementById('data-input').value;
-    // save the data
-    console.log('Data saved:', inputData);
-  }
+}
 
-  // Function to download training data
+// Function to save time range
+function saveTime() {
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+
+    // You can save the start and end dates or perform any other action with them
+    console.log('Start Date:', startDate);
+    console.log('End Date:', endDate);
+
+    // Close the popup after saving
+    map.closePopup();
+}
+
+// Function to save data
+function saveData() {
+    const inputData = document.getElementById('data-input').value;
+    // Save the data
+    console.log('Data saved:', inputData);
+}
+
+// Function to download training data
 function downloadTrainingData() {
     // You can add logic here to initiate the download of training data
     console.log('Downloading Training Data');
-  }
-  
-  // Function to download prediction
-  function downloadPrediction() {
+}
+
+// Function to download prediction
+function downloadPrediction() {
     // You can add logic here to initiate the download of prediction data
     console.log('Downloading Prediction');
-  }
-  
+}
