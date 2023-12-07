@@ -2,69 +2,111 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Earth Classifier</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth Classifier</title>
 
- <!-- Bootstrap CSS -->
- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
- integrity="sha384-rbs5jQhj1YRJxQUn8AdL5GcA9gS8c9IP0A1pb3a+9BmC1aPslktF+q3tVODLyFhH"
- crossorigin="anonymous">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        integrity="sha384-rbs5jQhj1YRJxQUn8AdL5GcA9gS8c9IP0A1pb3a+9BmC1aPslktF+q3tVODLyFhH" crossorigin="anonymous">
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
- integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
- crossorigin="">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
-<!-- Leaflet Draw CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.css" />
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.css" />
 
-<!-- Externe CSS-Datei -->
-<link rel="stylesheet" href="../src/styles.css">
-
+    <!-- Externe CSS-Datei -->
+    <link rel="stylesheet" href="../src/styles.css">
 </head>
 
 <body class="bg-light">
 
-  <div class="container-fluid">
+    <div class="container-fluid">
         <h1 class="display-4">Earth Classifier</h1>
 
         <!-- Map Section -->
         <div id="map" style="height: 400px;"></div>
 
-        <!-- GeoJSON Upload Section -->
-        <h2 class="mt-4">Upload GeoJSON</h2>
-        <p> Datei hochladen:</p>
+        <!-- Upload Section -->
+        <h2 class="mt-4">Upload</h2>
+        <p>Datei auswählen:</p>
         <div class="mb-3">
             <input class="form-control" type="file" id="geojson-file-input" />
         </div>
-
+      
         <!-- Data Input Section -->
-        <p> Textfeld für GeoJSON:</p>
+        <p>Textfeld für GeoJSON:</p>
         <div class="mt-4">
             <textarea class="form-control" id="data-input" rows="4" placeholder="Enter data..."></textarea>
         </div>
-        <p> Daten speichern:</p>
-        <div class="mt-4">
-          <button class="btn btn-primary mt-2" onclick="saveData()">Save Data</button>
+        <div class="col-md-6 d-flex align-items-end">
+            <button class="btn btn-outline-primary" onclick="insertGeoJSONTemplate()">GeoJSON-Vorlage einfügen</button>
+            <button class="btn btn-outline-primary" onclick="saveData()">Speichern</button>
         </div>
 
-        <!-- Visualization Section -->
-        <h2 class="mt-4">Visualization</h2>
+        <!-- GeoJSON Template -->
+        <div id="geojson-template" style="display: none;">
+            <p>Vorlage:</p>
+            <pre>
+        {
+        "type": "Feature",
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+            [
+                [7.62371, 51.96386],
+                [7.62371, 51.96436],
+                [7.62521, 51.96436],
+                [7.62521, 51.96386],
+                [7.62371, 51.96386]
+            ]
+            ]
+        },
+        "properties": {}
+        }
+            </pre>
+        </div>
+
+
+        <!-- Confirmation Section -->
+        <h2 class="mt-4">Bestätigung der Area</h2>
+        <button class="btn btn-primary mt-2" onclick="confirmArea()">Weiter</button>
+
+        <!-- Algorithm Selection Section -->
+        <h2 class="mt-4">Algorithmus auswählen</h2>
+        <button class="btn btn-primary mt-2" onclick="selectAlgorithm()">Random Forest</button>
+
+        <!-- Model Selection Section -->
+        <h2 class="mt-4">Trainiertes Model verwenden oder neues Model trainieren</h2>
+        <button class="btn btn-primary mt-2" onclick="useTrainedModel()">Trainiertes Model</button>
+        <button class="btn btn-primary mt-2" onclick="trainNewModel()">Neues Model trainieren</button>
+
+        <!-- Training Data Selection Section -->
+        <div id="training-data-section" style="display: none;">
+        <h2 class="mt-4">Auswahl der Trainingsdaten</h2>
+        <button id="upload-training-data-btn" class="btn btn-primary mt-2">Upload</button>
+        <button id="train-manually-btn" class="btn btn-primary mt-2">Selbst trainieren</button>
+        </div>
+
+        <!-- Resolution Section -->
+        <h2 class="mt-4">Auflösung</h2>
         <div class="mb-3">
             <label for="resolution-slider" class="form-label">Resolution:</label>
             <input type="range" class="form-range" id="resolution-slider" min="1" max="10" value="5" />
         </div>
-         <!-- Berechnung -->
-         <h2 class="mt-4">Berechnung der Daten</h2>
-         <div class="mb-3">
-          <button class="btn btn-primary" onclick="visualizeData()">Calculate Data</button>
-         </div>
+
+        <!-- Calculation Section -->
+        <h2 class="mt-4">Berechnung starten</h2>
+        <div class="mb-3">
+            <button class="btn btn-primary" onclick="startCalculation()">Berechnen</button>
+        </div>
 
         <!-- Download Section -->
         <h2 class="mt-4">Download</h2>
-        <button class="btn btn-primary" onclick="downloadTrainingData()">Download Training Data</button>
-        <button class="btn btn-primary" onclick="downloadPrediction()">Download Prediction</button>
+        <button class="btn btn-primary" onclick="downloadModel()">Model downloaden</button>
+        <button class="btn btn-primary" onclick="downloadResult()">Ergebnis downloaden</button>
     </div>
 
     <!-- Footer -->
@@ -76,17 +118,15 @@
 
     <!-- Bootstrap JS and other scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-csiFv3kxPq3jkgBTKbI9NlOWCV5g8reZXEGrwG1PHaVRcD5uZ0MEbiHqZ2G1w7U"
-            crossorigin="anonymous"></script>
+        integrity="sha384-csiFv3kxPq3jkgBTKbI9NlOWCV5g8reZXEGrwG1PHaVRcD5uZ0MEbiHqZ2G1w7U"
+        crossorigin="anonymous"></script>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <!-- Leaflet.Draw JS -->
     <script src="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.js"></script>
-    <script type="module" src="../js/interaction_map.js" defer></script>
 
     <!-- Your JavaScript file -->
     <script src="script.js"></script>

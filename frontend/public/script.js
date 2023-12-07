@@ -18,7 +18,7 @@ let drawControl = new L.Control.Draw({
   },
   edit: {
     featureGroup: drawnItems,
-    remove: false,
+    remove: true, // Allow removal of drawn items
   }
 });
 map.addControl(drawControl);
@@ -32,27 +32,57 @@ map.on('draw:created', function (e) {
     // Add the drawn layer to the map
     drawnItems.addLayer(layer);
 
-    // Check if the drawn shape is a polygon
-    if (layer instanceof L.Polygon) {
-      // Get the coordinates of the polygon
-      let coordinates = layer.getLatLngs()[0]; // Assuming it's a simple polygon, getLatLngs returns an array of LatLng
-
-      // Convert coordinates to a string for display
-      let coordinatesString = coordinates.map(coord => `[${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]`).join(', ');
-
-      // Open a popup with date input fields and polygon coordinates
-      layer.bindPopup(`
-        <label for="start-date">Start Date:</label>
-        <input type="date" id="start-date"><br>
-        <label for="end-date">End Date:</label>
-        <input type="date" id="end-date"><br>
-        <p>Polygon Coordinates: ${coordinatesString}</p>
-        <button onclick="saveTime()">Save Time</button>
-      `).openPopup();
-    }
+    // Show the popup for the drawn layer
+    drawPopup(layer);
   }
 });
 
+// Event listener for when a GeoJSON file is uploaded
+document.getElementById('geojson-file-input').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+    geojsonData = JSON.parse(event.target.result);
+    // Add GeoJSON to the map
+    const geoJsonLayer = L.geoJSON(geojsonData).addTo(map);
+
+    // Show the popup for the GeoJSON layer
+    drawPopup(geoJsonLayer);
+  };
+
+  reader.readAsText(file);
+});
+
+// Function to draw popup for a layer
+function drawPopup(layer) {
+  // Check if the layer is a polygon
+  if (layer instanceof L.Polygon) {
+    // Get the coordinates of the polygon
+    const coordinates = layer.getLatLngs()[0];
+    // Convert coordinates to a string for display
+    const coordinatesString = coordinates.map(coord => `[${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]`).join(', ');
+
+    // Open a popup with date input fields and polygon coordinates
+    layer.bindPopup(`
+      <label for="start-date">Start Date:</label>
+      <input type="date" id="start-date"><br>
+      <label for="end-date">End Date:</label>
+      <input type="date" id="end-date"><br>
+      <p>Polygon Coordinates: ${coordinatesString}</p>
+      <button onclick="saveTime()">Save Time</button>
+    `).openPopup();
+  }
+}
+
+// Function to handle edit events
+map.on('draw:edited', function (e) {
+  const layers = e.layers;
+  layers.eachLayer(function (layer) {
+    // Handle edited layers as needed
+    console.log('Layer edited:', layer);
+  });
+});
 
 // Function to save time range
 function saveTime() {
@@ -69,57 +99,86 @@ function saveTime() {
 
 // Event listener for when a GeoJSON file is uploaded
 document.getElementById('geojson-file-input').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-  
-    reader.onload = function (event) {
-      geojsonData = JSON.parse(event.target.result);
-      // Add GeoJSON to the map
-      L.geoJSON(geojsonData).addTo(map);
-    };
-  
-    reader.readAsText(file);
-  });
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+    geojsonData = JSON.parse(event.target.result);
+    // Add GeoJSON to the map
+    L.geoJSON(geojsonData).addTo(map);
+  };
+
+  reader.readAsText(file);
+});
 
 // Event listener for the visualization button
 document.getElementById('resolution-slider').addEventListener('change', function () {
-    visualizeData();
-  });
+  visualizeData();
+});
 
 // Function to upload GeoJSON
 function uploadGeoJSON() {
-    // You can add logic here to send the GeoJSON data to the server
-    console.log('GeoJSON uploaded:', geojsonData);
+  // You can add logic here to send the GeoJSON data to the server
+  console.log('GeoJSON uploaded:', geojsonData);
 }
 
-// Function to save time range
-function saveTime() {
-    const startDate = document.getElementById('start-date').value;
-    const endDate = document.getElementById('end-date').value;
+// Function to insert GeoJSON template into the data input field
+function insertGeoJSONTemplate() {
+  const template = `{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [7.62371, 51.96386],
+        [7.62371, 51.96436],
+        [7.62521, 51.96436],
+        [7.62521, 51.96386],
+        [7.62371, 51.96386]
+      ]
+    ]
+  },
+  "properties": {}
+}`;
 
-    // You can save the start and end dates or perform any other action with them
-    console.log('Start Date:', startDate);
-    console.log('End Date:', endDate);
-
-    // Close the popup after saving
-    map.closePopup();
+  // Insert the template into the data input field
+  document.getElementById('data-input').value = template;
 }
 
 // Function to save data
 function saveData() {
-    const inputData = document.getElementById('data-input').value;
-    // Save the data
-    console.log('Data saved:', inputData);
+  const inputData = document.getElementById('data-input').value;
+
+  try {
+    // Parse the input data as JSON
+    const geoJsonData = JSON.parse(inputData);
+
+    // Check if the parsed data has the required structure
+    if (
+      geoJsonData &&
+      geoJsonData.type === 'Feature' &&
+      geoJsonData.geometry &&
+      (geoJsonData.geometry.type === 'Polygon' || geoJsonData.geometry.type === 'Rectangle') &&
+      geoJsonData.geometry.coordinates
+    ) {
+      // Add GeoJSON to the map
+      const geoJsonLayer = L.geoJSON(geoJsonData).addTo(map);
+
+      // Show the popup for the GeoJSON layer
+      drawPopup(geoJsonLayer);
+    } else {
+      console.error('Invalid GeoJSON format. Please enter a valid Polygon or Rectangle GeoJSON.');
+    }
+  } catch (error) {
+    console.error('Error parsing input data as JSON:', error);
+  }
 }
 
-// Function to download training data
-function downloadTrainingData() {
-    // You can add logic here to initiate the download of training data
-    console.log('Downloading Training Data');
+
+
+// Function to handle "Neues Model trainieren" button click
+function trainNewModel() {
+  // Zeige den Bereich an, wenn der Button geklickt wurde
+  document.getElementById('training-data-section').style.display = 'block';
 }
 
-// Function to download prediction
-function downloadPrediction() {
-    // You can add logic here to initiate the download of prediction data
-    console.log('Downloading Prediction');
-}
