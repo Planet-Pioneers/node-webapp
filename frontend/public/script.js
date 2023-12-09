@@ -55,25 +55,34 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
 });
 
 // Function to draw popup for a layer
+// Function to draw popup for a layer
 function drawPopup(layer) {
-  // Check if the layer is a polygon
-  if (layer instanceof L.Polygon) {
-    // Get the coordinates of the polygon
-    const coordinates = layer.getLatLngs()[0];
-    // Convert coordinates to a string for display
-    const coordinatesString = coordinates.map(coord => `[${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]`).join(', ');
+  if (layer instanceof L.LayerGroup) {
+    // Handle a LayerGroup (GeoJSON with multiple features)
+    layer.eachLayer(function (subLayer) {
+      drawPopup(subLayer);
+    });
+  } else {
+    // Check if the layer is a polygon or rectangle
+    if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+      // Get the coordinates of the layer
+      const coordinates = layer.getLatLngs()[0];
+      // Convert coordinates to a string for display
+      const coordinatesString = coordinates.map(coord => `[${coord.lat.toFixed(6)}, ${coord.lng.toFixed(6)}]`).join(', ');
 
-    // Open a popup with date input fields and polygon coordinates
-    layer.bindPopup(`
-      <label for="start-date">Start Date:</label>
-      <input type="date" id="start-date"><br>
-      <label for="end-date">End Date:</label>
-      <input type="date" id="end-date"><br>
-      <p>Polygon Coordinates: ${coordinatesString}</p>
-      <button onclick="saveTime()">Save Time</button>
-    `).openPopup();
+      // Open a popup with date input fields and layer coordinates
+      layer.bindPopup(`
+        <label for="start-date">Start Date:</label>
+        <input type="date" id="start-date"><br>
+        <label for="end-date">End Date:</label>
+        <input type="date" id="end-date"><br>
+        <p>Layer Coordinates: ${coordinatesString}</p>
+        <button onclick="saveTime()">Save Time</button>
+      `).openPopup();
+    }
   }
 }
+
 
 // Function to handle edit events
 map.on('draw:edited', function (e) {
