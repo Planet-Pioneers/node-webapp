@@ -55,7 +55,6 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
 });
 
 // Function to draw popup for a layer
-// Function to draw popup for a layer
 function drawPopup(layer) {
   if (layer instanceof L.LayerGroup) {
     // Handle a LayerGroup (GeoJSON with multiple features)
@@ -78,32 +77,23 @@ function drawPopup(layer) {
         <input type="date" id="end-date"><br>
         <p>Layer Coordinates: ${coordinatesString}</p>
         <button onclick="saveTime()">Save Time</button>
+        <button onclick="deleteLayer()">Delete</button> <!-- Add delete button -->
       `).openPopup();
     }
   }
 }
 
-
-// Function to handle edit events
-map.on('draw:edited', function (e) {
-  const layers = e.layers;
-  layers.eachLayer(function (layer) {
-    // Handle edited layers as needed
-    console.log('Layer edited:', layer);
-  });
-});
-
-// Function to save time range
-function saveTime() {
-  const startDate = document.getElementById('start-date').value;
-  const endDate = document.getElementById('end-date').value;
-
-  // You can save the start and end dates or perform any other action with them
-  console.log('Start Date:', startDate);
-  console.log('End Date:', endDate);
-
-  // Close the popup after saving
-  map.closePopup();
+// Function to handle delete button click
+function deleteLayer() {
+  const selectedLayer = map._popup._source; // Get the layer associated with the popup
+  if (selectedLayer) {
+    if (drawnItems.hasLayer(selectedLayer)) {
+      drawnItems.removeLayer(selectedLayer);
+    } else {
+      map.removeLayer(selectedLayer);
+    }
+  }
+  map.closePopup(); // Close the popup after deletion
 }
 
 // Event listener for when a GeoJSON file is uploaded
