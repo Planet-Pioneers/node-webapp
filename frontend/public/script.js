@@ -82,6 +82,18 @@ function drawPopup(layer) {
     }
   }
 }
+// Function to save time range
+function saveTime() {
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+
+  // You can save the start and end dates or perform any other action with them
+  console.log('Start Date:', startDate);
+  console.log('End Date:', endDate);
+
+  // Close the popup after saving
+  map.closePopup();
+}
 
 // Function to handle delete button click
 function deleteLayer() {
