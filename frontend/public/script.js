@@ -6,6 +6,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 let drawnItems = new L.FeatureGroup();
 map.addLayer(drawnItems);
 
+// Initialize an array to store drawn and GeoJSON layers
+let allLayers = [];
+
 // Only allow polygons and rectangles
 let drawControl = new L.Control.Draw({
   draw: {
@@ -29,8 +32,9 @@ map.on('draw:created', function (e) {
   const layer = e.layer;
 
   if (type === 'polygon' || type === 'rectangle') {
-    // Add the drawn layer to the map
+    // Add the drawn layer to the map and the allLayers array
     drawnItems.addLayer(layer);
+    allLayers.push(layer);
 
     // Show the popup for the drawn layer
     drawPopup(layer);
@@ -44,8 +48,9 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
 
   reader.onload = function (event) {
     geojsonData = JSON.parse(event.target.result);
-    // Add GeoJSON to the map
+    // Add GeoJSON to the map and the allLayers array
     const geoJsonLayer = L.geoJSON(geojsonData).addTo(map);
+    allLayers.push(geoJsonLayer);
 
     // Show the popup for the GeoJSON layer
     drawPopup(geoJsonLayer);
@@ -82,6 +87,7 @@ function drawPopup(layer) {
     }
   }
 }
+
 // Function to save time range
 function saveTime() {
   const startDate = document.getElementById('start-date').value;
@@ -99,28 +105,23 @@ function saveTime() {
 function deleteLayer() {
   const selectedLayer = map._popup._source; // Get the layer associated with the popup
   if (selectedLayer) {
+    // Check if the selected layer is from drawnItems or a GeoJSON layer
     if (drawnItems.hasLayer(selectedLayer)) {
       drawnItems.removeLayer(selectedLayer);
     } else {
+      // Handle GeoJSON layer deletion
       map.removeLayer(selectedLayer);
+
+      // Remove the layer from the allLayers array
+      const index = allLayers.indexOf(selectedLayer);
+      if (index !== -1) {
+        allLayers.splice(index, 1);
+      }
     }
   }
+
   map.closePopup(); // Close the popup after deletion
 }
-
-// Event listener for when a GeoJSON file is uploaded
-document.getElementById('geojson-file-input').addEventListener('change', function (e) {
-  const file = e.target.files[0];
-  const reader = new FileReader();
-
-  reader.onload = function (event) {
-    geojsonData = JSON.parse(event.target.result);
-    // Add GeoJSON to the map
-    L.geoJSON(geojsonData).addTo(map);
-  };
-
-  reader.readAsText(file);
-});
 
 // Event listener for the visualization button
 document.getElementById('resolution-slider').addEventListener('change', function () {
