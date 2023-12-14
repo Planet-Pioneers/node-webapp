@@ -65,45 +65,50 @@
             </pre>
         </div>
 
+        
+ <!-- Confirmation Section -->
+ <h2 class="mt-4">Bestätigung der Area</h2>
+ <button class="btn btn-primary mt-2" onclick="confirmArea()">Weiter</button>
 
-        <!-- Confirmation Section -->
-        <h2 class="mt-4">Bestätigung der Area</h2>
-        <button class="btn btn-primary mt-2" onclick="confirmArea()">Weiter</button>
+ <!-- Algorithm Selection Section -->
+ <div id="algorithm-section" style="display: none;">
+     <h2 class="mt-4">Algorithmus auswählen</h2>
+     <button class="btn btn-primary mt-2" onclick="continueToResolution()">Weiter</button>
 
-        <!-- Algorithm Selection Section -->
-        <h2 class="mt-4">Algorithmus auswählen</h2>
-        <button class="btn btn-primary mt-2" onclick="selectAlgorithm()">Random Forest</button>
 
-        <!-- Model Selection Section -->
-        <h2 class="mt-4">Trainiertes Model verwenden oder neues Model trainieren</h2>
-        <button class="btn btn-primary mt-2" onclick="useTrainedModel()">Trainiertes Model</button>
-        <button class="btn btn-primary mt-2" onclick="trainNewModel()">Neues Model trainieren</button>
+ <!-- Model Selection Section -->
+ <h2 class="mt-4">Trainiertes Model verwenden oder neues Model trainieren</h2>
+ <button class="btn btn-primary mt-2" onclick="useTrainedModel()">Trainiertes Model</button>
+ <button class="btn btn-primary mt-2" onclick="trainNewModel()">Neues Model trainieren</button>
 
-        <!-- Training Data Selection Section -->
-        <div id="training-data-section" style="display: none;">
-        <h2 class="mt-4">Auswahl der Trainingsdaten</h2>
-        <button id="upload-training-data-btn" class="btn btn-primary mt-2">Upload</button>
-        <button id="train-manually-btn" class="btn btn-primary mt-2">Selbst trainieren</button>
-        </div>
+ <!-- Training Data Selection Section -->
+ <div id="training-data-section" style="display: none;">
+ <h2 class="mt-4">Auswahl der Trainingsdaten</h2>
+ <button id="upload-training-data-btn" class="btn btn-primary mt-2">Upload</button>
+ <button id="train-manually-btn" class="btn btn-primary mt-2">Selbst trainieren</button>
+ </div>
 
-        <!-- Resolution Section -->
-        <h2 class="mt-4">Auflösung</h2>
-        <div class="mb-3">
-            <label for="resolution-slider" class="form-label">Resolution:</label>
-            <input type="range" class="form-range" id="resolution-slider" min="1" max="10" value="5" />
-        </div>
+ <!-- Resolution Section -->
+ <h2 class="mt-4">Auflösung</h2>
+ <div class="mb-3">
+     <label for="resolution-slider" class="form-label">Resolution:</label>
+     <input type="range" class="form-range" id="resolution-slider" min="1" max="10" value="5" />
+ </div>
 
-        <!-- Calculation Section -->
-        <h2 class="mt-4">Berechnung starten</h2>
-        <div class="mb-3">
-            <button class="btn btn-primary" onclick="startCalculation()">Berechnen</button>
-        </div>
+ <!-- Calculation Section -->
+     <h2 class="mt-4">Berechnung starten</h2>
+     <div class="mb-3">
+         <button class="btn btn-primary" onclick="startDownload()">Berechnen</button>
+     </div>
+ </div>
 
-        <!-- Download Section -->
-        <h2 class="mt-4">Download</h2>
-        <button class="btn btn-primary" onclick="downloadModel()">Model downloaden</button>
-        <button class="btn btn-primary" onclick="downloadResult()">Ergebnis downloaden</button>
-    </div>
+ <!-- Download Section -->
+ <div id="download-section" style="display: none;">
+     <h2 class="mt-4">Download</h2>
+     <button class="btn btn-primary" onclick="downloadModel()">Model downloaden</button>
+     <button class="btn btn-primary" onclick="downloadResult()">Ergebnis downloaden</button>
+ </div>
+</div>
 
     <!-- Footer -->
     <footer class="bg-light text-center text-lg-start mt-4">

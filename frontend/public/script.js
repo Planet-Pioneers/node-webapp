@@ -188,9 +188,29 @@ function saveData() {
 
 
 
-// Function to handle "Neues Model trainieren" button click
+// Function to handle the "Train New Model" button click
 function trainNewModel() {
-  // Zeige den Bereich an, wenn der Button geklickt wurde
   document.getElementById('training-data-section').style.display = 'block';
 }
 
+// Initially display
+showSection('upload-section');
+
+// Function to display the respective section
+function showSection(sectionId) {
+  // Display the selected section
+  const selectedSection = document.getElementById(sectionId);
+  if (selectedSection) {
+    selectedSection.style.display = 'block';
+  }
+}
+
+// Function for the "Continue" button in the "Confirmation of Area" section
+function confirmArea() {
+  showSection('algorithm-section');
+}
+
+// Function for the "Calculate" button in the "Calculation Section"
+function startDownload() {
+  showSection('download-section');
+}
