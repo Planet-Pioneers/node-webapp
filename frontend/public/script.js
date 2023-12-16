@@ -238,3 +238,22 @@ function trainManually() {
   // Annahme: Das manuelle Training war erfolgreich
   alert('Modell erfolgreich trainiert');
 }
+
+const resolutionSlider = document.getElementById('resolution-slider');
+        const resolutionValue = document.getElementById('resolution-value');
+
+        // Mapping values to resolutions
+        const resolutions = {
+            1: { label: 'Niedrige Auflösung: 60 Meter pro Pixel', resolution: 60 },
+            5: { label: 'Mittlere Auflösung: 20 Meter pro Pixel', resolution: 20 },
+            10: { label: 'Hohe Auflösung: 10 Meter pro Pixel', resolution: 10 }
+        };
+
+        // Event listener for slider changes
+        resolutionSlider.addEventListener('input', function () {
+            const value = parseInt(resolutionSlider.value);
+            const selectedResolution = resolutions[value];
+
+            // Update the displayed resolution value
+            resolutionValue.textContent = selectedResolution.label;
+        });
