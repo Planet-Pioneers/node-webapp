@@ -223,6 +223,15 @@ function showTrainButton() {
   
 }
 
+// Event listener for the "Upload" button
+  document.getElementById('upload-training-data-btn').addEventListener('click', function () {
+    // Code for handling upload functionality
+    // ...
+
+    // Show the "Modell trainieren" button
+    document.getElementById('train-model-btn').style.display = 'block';
+  });
+
 
 function trainModel() {
   // Hier könnte der Code für das Modelltraining stehen
