@@ -215,12 +215,22 @@ function startDownload() {
   showSection('download-section');
 }
 
-function uploadTrainingData() {
-  // Code für eigenes neues Modell als Upload hier
+function showTrainButton() {
+  // Hier könnte der Code für den Upload der Trainingsdaten stehen
 
   // Annahme: Der Upload war erfolgreich
+  // Zeige den Button "Modell trainieren" an
+  
+}
+
+
+function trainModel() {
+  // Hier könnte der Code für das Modelltraining stehen
+
+  // Annahme: Das Modelltraining war erfolgreich
   alert('Modell erfolgreich trainiert');
 }
+
 
 function trainManually() {
   // Code für eigenes neues Modell selbst trainieren
