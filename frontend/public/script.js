@@ -214,3 +214,17 @@ function confirmArea() {
 function startDownload() {
   showSection('download-section');
 }
+
+function uploadTrainingData() {
+  // Code für eigenes neues Modell als Upload hier
+
+  // Annahme: Der Upload war erfolgreich
+  alert('Modell erfolgreich trainiert');
+}
+
+function trainManually() {
+  // Code für eigenes neues Modell selbst trainieren
+
+  // Annahme: Das manuelle Training war erfolgreich
+  alert('Modell erfolgreich trainiert');
+}
