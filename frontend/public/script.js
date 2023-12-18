@@ -97,6 +97,28 @@ function saveTime() {
   console.log('Start Date:', startDate);
   console.log('End Date:', endDate);
 
+   // Get GeoJSON data from the drawn layer
+   const geoJSONData = drawnItems.toGeoJSON();
+
+   // Make an HTTP POST request to send GeoJSON data to the server
+   fetch('http://localhost:3000/uploadGeoJSON', {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+     },
+     body: JSON.stringify({
+       startDate,
+       endDate,
+       geoJSONData,
+     }),
+   })
+     .then(response => response.json())
+     .then(data => {
+       console.log('Server response:', data);
+     })
+     .catch(error => {
+       console.error('Error sending data to the server:', error);
+     });
   // Close the popup after saving
   map.closePopup();
 }
