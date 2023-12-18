@@ -54,18 +54,43 @@ map.on('draw:created', function (e) {
 });
 
 
-// Function to save time range
+// Function to save time range and send GeoJSON to the backend
 function saveTime() {
   const startDate = document.getElementById('start-date').value;
   const endDate = document.getElementById('end-date').value;
+
+  // Get GeoJSON data from the drawn layer
+  const geoJSONData = drawnItems.toGeoJSON();
+
+  // Make an HTTP POST request to send GeoJSON data to the server
+  fetch('http://localhost:3000/uploadGeoJSON', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      startDate,
+      endDate,
+      geoJSONData,
+    }),
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Server response:', data);
+    })
+    .catch(error => {
+      console.error('Error sending data to the server:', error);
+    });
+
+  // Close the popup after saving
+  map.closePopup();
+}
+
 
   // You can save the start and end dates or perform any other action with them
   console.log('Start Date:', startDate);
   console.log('End Date:', endDate);
 
-  // Close the popup after saving
-  map.closePopup();
-}
 
 // Event listener for when a GeoJSON file is uploaded
 document.getElementById('geojson-file-input').addEventListener('change', function (e) {
