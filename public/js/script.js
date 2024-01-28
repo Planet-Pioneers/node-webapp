@@ -309,37 +309,109 @@ async function startDownload(calc) {
   } catch (error) {
     console.error(error); // Handle errors here
   }
-  if(calculation == "NDVI"){
+  if (calculation == "NDVI") {
     var url_to_geotiff_file = "../results/result.tif"
-  }else {
+    // Chroma color scale definition
+    const scale = chroma.scale([
+      '#640000',
+      '#ff0000',
+      '#ffff00',
+      '#00c800',
+      '#006400'
+    ]).domain([
+      0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ]);
+
+
+    fetch(url_to_geotiff_file)
+      .then(response => response.arrayBuffer())
+      .then(arrayBuffer => {
+        parseGeoraster(arrayBuffer).then(georaster => {
+          console.log("georaster:", georaster);
+          var pixelValuesToColorFn = values => {
+            const ndviValue = values[0]; // Assuming NDVI is the first band in the GeoTIFF
+            return scale(ndviValue).hex();
+          };
+
+          /*
+              GeoRasterLayer is an extension of GridLayer,
+              which means can use GridLayer options like opacity.
+  
+              Just make sure to include the georaster option!
+  
+              http://leafletjs.com/reference-1.2.0.html#gridlayer
+          */
+          var layer = new GeoRasterLayer({
+            pixelValuesToColorFn,
+            georaster: georaster,
+            opacity: 1,
+            resolution: 256
+          });
+          layer.addTo(map);
+
+          map.fitBounds(layer.getBounds());
+
+        });
+      });
+  } else {
     var url_to_geotiff_file = "../results/composite.tif"
+
+
+    fetch(url_to_geotiff_file)
+      .then(response => response.arrayBuffer())
+      .then(arrayBuffer => {
+        parseGeoraster(arrayBuffer).then(georaster => {
+          console.log("georaster:", georaster);
+          // Function to map pixel values to colors
+          const pixelValuesToColorFn = ([red, green, blue]) => {
+            // Adjust these scaling factors based on the actual data range in your bands
+            const minRed = georaster.mins[0];
+            const maxRed = georaster.maxs[0];;
+            const minGreen = georaster.mins[1];;
+            const maxGreen = georaster.maxs[1];;
+            const minBlue = georaster.mins[2];;
+            const maxBlue = georaster.maxs[2];;
+          
+            // Scale the values to the 0-255 range
+            red = Math.round(255 * (red - minRed) / (maxRed - minRed));
+            green = Math.round(255 * (green - minGreen) / (maxGreen - minGreen));
+            blue = Math.round(255 * (blue - minBlue) / (maxBlue - minBlue));
+          
+            // Ensure values are within the 0-255 range
+            red = Math.min(Math.max(red, 0), 255);
+            green = Math.min(Math.max(green, 0), 255);
+            blue = Math.min(Math.max(blue, 0), 255);
+          
+            return `rgb(${red}, ${green}, ${blue})`;
+          };
+          
+
+          /*
+              GeoRasterLayer is an extension of GridLayer,
+              which means can use GridLayer options like opacity.
+  
+              Just make sure to include the georaster option!
+  
+              http://leafletjs.com/reference-1.2.0.html#gridlayer
+          */
+          var layer = new GeoRasterLayer({
+            pixelValuesToColorFn,
+            georaster: georaster,
+            opacity: 1,
+            resolution: 256
+          });
+          layer.addTo(map);
+
+          map.fitBounds(layer.getBounds());
+
+        });
+      });
   }
 
-
-  fetch(url_to_geotiff_file)
-    .then(response => response.arrayBuffer())
-    .then(arrayBuffer => {
-      parseGeoraster(arrayBuffer).then(georaster => {
-        console.log("georaster:", georaster);
-
-        /*
-            GeoRasterLayer is an extension of GridLayer,
-            which means can use GridLayer options like opacity.
-
-            Just make sure to include the georaster option!
-
-            http://leafletjs.com/reference-1.2.0.html#gridlayer
-        */
-        var layer = new GeoRasterLayer({
-          georaster: georaster,
-          opacity: 1
-        });
-        layer.addTo(map);
-
-        map.fitBounds(layer.getBounds());
-
-      });
-    });
 }
 
 function showTrainButton() {
