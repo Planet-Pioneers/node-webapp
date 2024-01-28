@@ -300,8 +300,20 @@ async function startDownload(calc) {
     calculation: calc
   }
   console.log(obj)
-  await api_call('jobs', 'POST', "/", obj);
-  var url_to_geotiff_file = "../results/result.tif"
+  let calculation;
+  try {
+    const responseData = await api_call('jobs', 'POST', "/", obj);
+    console.log("response: ", responseData)
+    calculation = responseData.calculation; // This will log the response data to the console
+    // You can now use the responseData as needed in your code
+  } catch (error) {
+    console.error(error); // Handle errors here
+  }
+  if(calculation == "NDVI"){
+    var url_to_geotiff_file = "../results/result.tif"
+  }else {
+    var url_to_geotiff_file = "../results/composite.tif"
+  }
 
 
   fetch(url_to_geotiff_file)

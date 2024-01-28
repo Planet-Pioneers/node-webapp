@@ -41,18 +41,7 @@ exports.create = async (req, res) => {
   cordjson.north = north;
   console.log(cordjson);
 
-  // Save Job in the database
-  job
-    .save(job)
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Job."
-      });
-    });
+
   console.log("trying to connect to openeocubes on http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000")
   //docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' r-backend and then use that ip adress instead of localhost!
 
@@ -100,6 +89,19 @@ exports.create = async (req, res) => {
     await con.downloadResult(datacube_agg, "./public/results/composite.tif");
     console.log("done!")
   }
+
+    // Save Job in the database
+    job
+    .save(job)
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while creating the Job."
+      });
+    });
 
 
 };
