@@ -1,0 +1,58 @@
+/* styles.css */
+
+body {
+  background-color: #475b47;
+  font-family: 'Helvetica', sans-serif;
+}
+
+.container-fluid {
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+  color: #333333;
+}
+
+.btn-primary {
+  background-color: #475b47;
+  border-color: #475b47;
+  color: #ffffff;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.btn-primary:hover {
+  background-color: #475b47; 
+  border-color: #475b47;
+}
+
+#map {
+  height: 400px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+#coordinates-display {
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 20px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Zusätzliche Stile für den Footer */
+footer {
+  background-color: #f4f4f4;
+  padding: 10px 0;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+}

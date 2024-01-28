@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth Classifier</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.css" />
+
+    <!-- Externe CSS-Datei -->
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+
+<body class="bg-light">
+
+    <div class="container-fluid">
+        <h1 class="display-4">Earth Classifier</h1>
+
+        <!-- Map Section -->
+        <div id="map" style="height: 400px;"></div>
+
+        <!-- Upload Section -->
+        <h2 class="mt-4">Upload</h2>
+        <p>Datei auswählen:</p>
+        <div class="mb-3">
+            <input class="form-control" type="file" id="geojson-file-input" />
+        </div>
+      
+        <!-- Data Input Section -->
+        <p>Textfeld für GeoJSON:</p>
+        <div class="mt-4">
+            <textarea class="form-control" id="data-input" rows="4" placeholder="Enter data..."></textarea>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+            <button class="btn btn-outline-primary" onclick="insertGeoJSONTemplate()">GeoJSON-Vorlage einfügen</button>
+            <button class="btn btn-outline-primary" onclick="saveData()">Speichern</button>
+        </div>
+
+        <!-- GeoJSON Template -->
+        <div id="geojson-template" style="display: none;">
+            <p>Vorlage:</p>
+            <pre>
+        {
+        "type": "Feature",
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+            [
+                [7.62371, 51.96386],
+                [7.62371, 51.96436],
+                [7.62521, 51.96436],
+                [7.62521, 51.96386],
+                [7.62371, 51.96386]
+            ]
+            ]
+        },
+        "properties": {}
+        }
+            </pre>
+        </div>
+
+
+ <!-- Confirmation Section -->
+ <h2 class="mt-4">Bestätigung der Area</h2>
+ <button class="btn btn-primary mt-2" onclick="confirmArea()">Weiter</button>
+
+ <!-- Algorithm Selection Section -->
+ <div id="algorithm-section" style="display: none;">
+     <h2 class="mt-4">Algorithmus auswählen</h2>
+     <button class="btn btn-primary mt-2" onclick="continueToResolution()">Random Forest</button>
+
+
+ <!-- Model Selection Section -->
+ <h2 class="mt-4">Trainiertes Model verwenden oder neues Model trainieren</h2>
+ <button class="btn btn-primary mt-2" onclick="useTrainedModel()">Trainiertes Model</button>
+ <button class="btn btn-primary mt-2" onclick="trainNewModel()">Neues Model trainieren</button>
+
+ <!-- Training Data Selection Section -->
+ <div id="training-data-section" style="display: none;">
+ <h2 class="mt-4">Auswahl der Trainingsdaten</h2>
+ <button id="upload-training-data-btn" class="btn btn-primary mt-2" onclick="uploadTrainingData()">Upload</button> 
+ <button id="train-manually-btn" class="btn btn-primary mt-2" onclick="trainManually()">Selbst trainieren</button>
+ <button id="train-model-btn" class="btn btn-primary mt-2 model-train-button" onclick="trainModel()" style="display: none;">Modell trainieren</button>
+</div>
+
+ <!-- Resolution Section -->
+ <h2 class="mt-4">Auflösung</h2>
+ <div class="mb-3">
+     <label for="resolution-slider" class="form-label">Resolution:</label>
+     <input type="range" class="form-range" id="resolution-slider" min="1" max="10" value="9" />
+     <p id="resolution-value"> 30 Meter pro Pixel</p>
+ </div>
+
+ <!-- Calculation Section -->
+     <h2 class="mt-4">Berechnung starten</h2>
+     <div class="mb-3">
+         <button class="btn btn-primary" onclick="startDownload('NDVI')">Berechnen</button>
+         <button class="btn btn-primary" onclick="startDownload('composite')">Wolkenfreies Komposit berechnen</button>
+     </div>
+ </div>
+
+ <!-- Download Section -->
+ <div id="download-section" style="display: none;">
+     <h2 class="mt-4">Download</h2>
+     <button class="btn btn-primary" onclick="downloadModel()">Model downloaden</button>
+     <button class="btn btn-primary" onclick="downloadResult()">Ergebnis downloaden</button>
+ </div>
+</div>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center text-lg-start mt-4">
+        <div class="text-center p-3" style="background-color: #f8f9fa;">
+            © 2023 Sonja, Simon, Inka, Elena, Arne
+        </div>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Leaflet.Draw JS -->
+    <script src="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.js"></script>
+
+    <!-- georaster for leaflet-->
+    <script src="https://unpkg.com/georaster"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+    <!-- Your JavaScript file -->
+    <script src="../js/script.js" defer></script>
+</body>
+
+</html>
+
