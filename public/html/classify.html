@@ -4,22 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earth Classifier</title>
+    <title>Geosoftware</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
-    <!-- Leaflet Draw CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.css" />
+    <!-- Leaflet.Draw CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.css">
 
-    <!-- Externe CSS-Datei -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/main.css">
+    <meta content="#fafafa" name="theme-color">
+
 </head>
 
-<body class="bg-light">
-
-    <div class="container-fluid">
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">
+                <img src="../logo.jpeg" alt="Logo" width="50" height="50" class="d-inline-block align-top" loading="lazy">
+                <a class="navbar-brand" href="#">Geosoftware</a>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Startseite</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
         <h1 class="display-4">Earth Classifier</h1>
 
         <!-- Map Section -->
@@ -113,27 +136,31 @@
  </div>
 </div>
 
-    <!-- Footer -->
     <footer class="bg-light text-center text-lg-start mt-4">
         <div class="text-center p-3" style="background-color: #f8f9fa;">
-            © 2023 Sonja, Simon, Inka, Elena, Arne
+            © 2023 Arne, Elena, Inka, Simon, Sonja
         </div>
     </footer>
+    </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 
-    <!-- Leaflet.Draw JS -->
-    <script src="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.js"></script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <!-- georaster for leaflet-->
-    <script src="https://unpkg.com/georaster"></script>
-    <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
-    <script src="https://unpkg.com/chroma-js"></script>
-    <!-- Your JavaScript file -->
-    <script src="../js/script.js" defer></script>
+<!-- Leaflet.Draw JS -->
+<script src="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.js"></script>
+
+<!-- georaster for leaflet-->
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+<script src="https://unpkg.com/chroma-js"></script>
+<!-- Your JavaScript file -->
+<script src="../js/script.js" defer></script>
 </body>
 
 </html>
-
