@@ -50,7 +50,7 @@ let job = {
 
 
 // Initialize Leaflet map
-const map = L.map('map').setView([51.96236, 7.62571], 15);
+const map = L.map('map').setView([51.96236, 7.62571], 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 // Variables to store drawn layers
@@ -76,10 +76,6 @@ let drawControl = new L.Control.Draw({
   }
 });
 map.addControl(drawControl);
-
-
-
-
 
 // Function to handle draw events
 map.on('draw:created', function (e) {
@@ -145,19 +141,45 @@ function drawPopup(layer) {
 
 // Function to save time range
 function saveTime() {
-  const startDate = document.getElementById('start-date').value;
-  const endDate = document.getElementById('end-date').value;
+  const startDateInput = document.getElementById('start-date');
+  const endDateInput = document.getElementById('end-date');
 
-  // You can save the start and end dates or perform any other action with them
-  console.log('Start Date:', startDate);
-  console.log('End Date:', endDate);
+  const startDate = startDateInput.value;
+  const endDate = endDateInput.value;
 
-  // Close the popup after saving
-  map.closePopup();
+  // Check if both start and end dates are selected
+  if (startDate && endDate) {
+    // Parse the selected dates
+    const startTimestamp = new Date(startDate).getTime();
+    const endTimestamp = new Date(endDate).getTime();
 
-  //save time in job variable
-  job.date = startDate;
+    // Calculate the difference in milliseconds
+    const timeDifference = endTimestamp - startTimestamp;
+
+    // Define the maximum allowed duration (4 weeks in milliseconds)
+    const maxDuration = 4 * 7 * 24 * 60 * 60 * 1000;
+
+    // Check if the selected duration is within the allowed range
+    if (timeDifference <= maxDuration) {
+      // Valid time range, you can proceed with saving
+      console.log('Start Date:', startDate);
+      console.log('End Date:', endDate);
+
+      // Save time in the job variable
+      job.date = startDate;
+
+      // Close the popup after saving
+      map.closePopup();
+    } else {
+      // Display an error message to the user
+      alert('Please select a time range within a 4-week period.');
+    }
+  } else {
+    // Display an error message if either start or end date is missing
+    alert('Please select both start and end dates.');
+  }
 }
+
 
 // Function to handle delete button click
 function deleteLayer() {
@@ -200,11 +222,9 @@ function insertGeoJSONTemplate() {
     "type": "Polygon",
     "coordinates": [
       [
-        [7.62371, 51.96386],
-        [7.62371, 51.96436],
-        [7.62521, 51.96436],
-        [7.62521, 51.96386],
-        [7.62371, 51.96386]
+        [7.531695, 51.919142], 
+        [7.531695, 51.997845], 
+        [7.712970, 51.997845], [7.712970, 51.919142]
       ]
     ]
   },
@@ -264,16 +284,28 @@ function showSection(sectionId) {
 }
 
 // Function for the "Continue" button in the "Confirmation of Area" section
+// Function for the "Continue" button in the "Confirmation of Area" section
 function confirmArea() {
-  if (Object.keys(drawnItems._layers).length == 1 && job.date != "") {
+  const drawnLayerCount = Object.keys(drawnItems._layers).length;
+
+  if (drawnLayerCount === 1 && job.date !== "") {
     showSection('algorithm-section');
     let coordinates = Object.values(drawnItems._layers)[0]._latlngs[0];
     let arrayOfArrays = coordinates.map(obj => [obj.lat, obj.lng]);
     job.coordinates = arrayOfArrays;
     console.log(job);
-  }
+  } else {
+    // Display an error message if there are not exactly one polygon and a date selected
+    if (drawnLayerCount !== 1) {
+      alert('Please draw exactly one polygon on the map.');
+    }
 
+    if (job.date === "") {
+      alert('Please select a date.');
+    }
+  }
 }
+
 
 // Function for the "Calculate" button in the "Calculation Section"
 async function startDownload(calc) {
