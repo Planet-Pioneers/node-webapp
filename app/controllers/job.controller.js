@@ -1,6 +1,7 @@
 const db = require("../models");
 const Job = db.jobs;
 const { OpenEO } = require('@openeo/js-client');
+const fs = require('fs');
 const proj4 = require('proj4');
 
 
@@ -56,17 +57,18 @@ exports.create = async (req, res) => {
   var info = con.capabilities();
   console.log("API Version: ", info.apiVersion());
   console.log("Description: ", info.description());
-  var builder = await con.buildProcess();
-  var datacube_init = builder.load_collection(
-    "sentinel-s2-l2a-cogs",
-    cordjson,
-    ["2018-06-01", "2018-06-30"],
-    undefined,
-    resolution
-  );
+
 
   if (calculation == "NDVI") {
     //calculates ndvi
+    var builder = await con.buildProcess();
+    var datacube_init = builder.load_collection(
+      "sentinel-s2-l2a-cogs",
+      cordjson,
+      ["2018-06-01", "2018-06-30"],
+      undefined,
+      resolution
+    );
     console.log("calculate NDVI!")
     datacube_filtered = builder.filter_bands(datacube_init, ["B04", "B08"]);
     datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
@@ -76,9 +78,17 @@ exports.create = async (req, res) => {
     result = builder.save_result(datacube_ndvi, "GTiff");
     await con.downloadResult(datacube_ndvi, "./public/results/result.tif");
     console.log("maybe done?");
-  } else if (calculation == "composite"){
+  } else if (calculation == "composite") {
     console.log("calculate Composite!")
     //calculates cloud free composite:
+    var builder = await con.buildProcess();
+    var datacube_init = builder.load_collection(
+      "sentinel-s2-l2a-cogs",
+      cordjson,
+      ["2018-06-01", "2018-06-30"],
+      undefined,
+      resolution
+    );
     datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04"]);
     datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
     result = builder.save_result(datacube_agg, "GTiff", {
@@ -88,10 +98,53 @@ exports.create = async (req, res) => {
     });
     await con.downloadResult(datacube_agg, "./public/results/composite.tif");
     console.log("done!")
+
+
+  } else if (calculation == "model") {
+
+    
+    const geojsonFilePath = "./public/results/trainingsites.geojson";
+    let geojsonContent;
+    let geojsonString
+    try {
+      geojsonContent = fs.readFileSync(geojsonFilePath, 'utf8');
+      geojsonString = JSON.stringify(geojsonContent)
+    } catch (err) {
+
+      console.error('Error reading GeoJSON file:', err);
+    }
+      var builder = await con.buildProcess();
+      var datacube_init = builder.load_collection(
+        "sentinel-s2-l2a-cogs",
+
+        {
+          west: 837596.9559,
+          south: 6785525.2027,
+          east: 857222.1630,
+          north: 6798404.8420,
+          crs: 3857
+        },
+        ["2020-06-01", "2020-06-30"],
+        undefined,
+        150
+      );
+      datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
+      datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
+      datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04", true)
+      //console.log(geojsonContent)
+      model = builder.train_model(datacube_ndvi, geojsonContent)
+      //classification = builder.classify(datacube_ndvi, model)
+
+
+      result = builder.save_result(model, "RDS");
+      await con.downloadResult(model, "./public/results/model.rds");
+      console.log("model trained!")
+
+
   }
 
-    // Save Job in the database
-    job
+  // Save Job in the database
+  job
     .save(job)
     .then(data => {
       res.send(data);

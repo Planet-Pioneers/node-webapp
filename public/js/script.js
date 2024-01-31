@@ -40,7 +40,7 @@ async function api_call(collection, method, route, body) {
 }
 
 
-
+let trainingdata;
 
 let job = {
   "date": "",
@@ -110,6 +110,17 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
   reader.readAsText(file);
 });
 
+document.getElementById('geojson-file-input2').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+    trainingdata  = JSON.parse(event.target.result);
+  };
+
+  reader.readAsText(file);
+});
+
 /*
 // Load the Rivers GeoPackage and display the tile layer
 L.geoPackageTileLayer({
@@ -171,7 +182,7 @@ function saveTime() {
     const timeDifference = endTimestamp - startTimestamp;
 
     // Define the maximum allowed duration (4 weeks in milliseconds)
-    const maxDuration = 4 * 7 * 24 * 60 * 60 * 1000;
+    const maxDuration = 2*4 * 7 * 24 * 60 * 60 * 1000;
 
     // Check if the selected duration is within the allowed range
     if (timeDifference <= maxDuration) {
@@ -338,7 +349,6 @@ async function startDownload(calc) {
     const responseData = await api_call('jobs', 'POST', "/", obj);
     console.log("response: ", responseData)
     calculation = responseData.calculation; // This will log the response data to the console
-    // You can now use the responseData as needed in your code
   } catch (error) {
     console.error(error); // Handle errors here
   }
@@ -390,7 +400,8 @@ async function startDownload(calc) {
 
         });
       });
-  } else {
+      alert("Classification done! Please view it on the map")
+  } else if (calculation == "composite") {
     var url_to_geotiff_file = "../results/composite.tif"
 
 
@@ -443,8 +454,28 @@ async function startDownload(calc) {
 
         });
       });
+      alert("Composite calculation done! Please view it on the map")
+  } else if (calculation == "model" ){
+    alert("Model calculation done!")
   }
 
+}
+
+
+function downloadFile(filename){
+  const filePath = `../results/${filename}`;
+  const link = document.createElement('a');
+    link.href = filePath;
+    link.download = filename;
+
+    // Append the link to the body
+    document.body.appendChild(link);
+
+    // Trigger a click on the link to start the download
+    link.click();
+
+    // Remove the link from the DOM
+    document.body.removeChild(link);
 }
 
 function showTrainButton() {
@@ -478,6 +509,9 @@ function trainManually() {
 
   // Annahme: Das manuelle Training war erfolgreich
   alert('Modell erfolgreich trainiert');
+}
+function useTrainedModel(){
+  alert("No trained models available!")
 }
 
 const resolutionSlider = document.getElementById('resolution-slider');
