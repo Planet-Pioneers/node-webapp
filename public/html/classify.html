@@ -108,7 +108,7 @@
  <div id="training-data-section" style="display: none;">
  <h2 class="mt-4">Auswahl der Trainingsdaten</h2>
  <button id="upload-training-data-btn" class="btn btn-primary mt-2" onclick="uploadTrainingData()">Upload</button> 
- <button id="train-manually-btn" class="btn btn-primary mt-2" onclick="trainManually()">Selbst trainieren</button>
+  <!-- <button id="train-manually-btn" class="btn btn-primary mt-2" onclick="trainManually()">Selbst trainieren</button> -->
  <button id="train-model-btn" class="btn btn-primary mt-2 model-train-button" onclick="trainModel()" style="display: none;">Modell trainieren</button>
 </div>
 
@@ -154,12 +154,12 @@
 
 <!-- Leaflet.Draw JS -->
 <script src="https://unpkg.com/leaflet-draw@1.0.2/dist/leaflet.draw.js"></script>
-<!-- GeoPackage -->
-
 <!-- georaster for leaflet-->
 <script src="https://unpkg.com/georaster"></script>
 <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
 <script src="https://unpkg.com/chroma-js"></script>
+<!-- geopackage-->
+<script src="https://unpkg.com/@ngageoint/leaflet-geopackage@4.1.3/dist/leaflet-geopackage.min.js"></script>
 <!-- Your JavaScript file -->
 <script src="../js/script.js" defer></script>
 </body>

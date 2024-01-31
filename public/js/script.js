@@ -110,6 +110,20 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
   reader.readAsText(file);
 });
 
+/*
+// Load the Rivers GeoPackage and display the tile layer
+L.geoPackageTileLayer({
+  geoPackageUrl: 'http://ngageoint.github.io/GeoPackage/examples/rivers.gpkg',
+  layerName: 'rivers_tiles'
+}).addTo(map);
+
+// Load the Rivers GeoPackage and display the feature layer
+L.geoPackageFeatureLayer([], {
+  geoPackageUrl: 'http://ngageoint.github.io/GeoPackage/examples/rivers.gpkg',
+  layerName: 'rivers'
+}).addTo(map);
+*/
+
 // Function to draw popup for a layer
 function drawPopup(layer) {
   if (layer instanceof L.LayerGroup) {
@@ -224,7 +238,8 @@ function insertGeoJSONTemplate() {
       [
         [7.531695, 51.919142], 
         [7.531695, 51.997845], 
-        [7.712970, 51.997845], [7.712970, 51.919142]
+        [7.712970, 51.997845], 
+        [7.712970, 51.919142]
       ]
     ]
   },
