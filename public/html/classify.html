@@ -25,7 +25,7 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <a class="navbar-brand" href="#">
-                <img src="../logo.jpeg" alt="Logo" width="50" height="50" class="d-inline-block align-top" loading="lazy">
+                <img src="../logo.png" alt="Logo" width="70" height="70" class="d-inline-block align-top" loading="lazy">
                 <a class="navbar-brand" href="#">Earth Classifier</a>
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -92,12 +92,24 @@
  <!-- Confirmation Section -->
  <h2 class="mt-4">Bestätigung der Area</h2>
  <button class="btn btn-primary mt-2" onclick="confirmArea()">Weiter</button>
-
+  <!-- Ladebalken 
+ <div id="container">
+    <img id="backgroundImage" src="../Logo-erde.png" alt="Hintergrundbild">
+    <img id="rotatingImage" src="../Logo-satellit.png" alt="Rotierendes Bild">
+</div>
+-->
  <!-- Algorithm Selection Section -->
  <div id="algorithm-section" style="display: none;">
      
      <button class="btn btn-primary mt-2" onclick="continueToResolution()" style="display: none">Random Forest</button>
 
+ <!-- Resolution Section -->
+ <h2 class="mt-4">Auflösung</h2>
+ <div class="mb-3">
+     <label for="resolution-slider" class="form-label">Resolution:</label>
+     <input type="range" class="form-range" id="resolution-slider" min="1" max="10" value="9" />
+     <p id="resolution-value"> 30 Meter pro Pixel</p>
+ </div>
 
  <!-- Model Selection Section -->
  <h2 class="mt-4">Trainiertes Model verwenden oder neues Model trainieren</h2>
@@ -107,23 +119,13 @@
  <!-- Training Data Selection Section -->
  <div id="training-data-section" style="display: none;">
  <h2 class="mt-4">Auswahl der Trainingsdaten</h2>
+ <p>Wählen Sie die Trainingsdaten aus: Auswahlmöglichkeiten über Datei-Upload und selbst trainieren (Zeichenfunktion auf der Karte)</p>
  <input class="form-control" type="file" id="geojson-file-input2" />
- <p></p>
  <button id="upload-training-data-btn" class="btn btn-primary mt-2" onclick="uploadTrainingData()">Upload</button> 
- 
-
-
-  <!-- <button id="train-manually-btn" class="btn btn-primary mt-2" onclick="trainManually()">Selbst trainieren</button> -->
+ <button id="train-manually-btn" class="btn btn-primary mt-2" onclick="trainManually()">Selbst trainieren</button>
  <button id="train-model-btn" class="btn btn-primary mt-2 model-train-button" onclick="startDownload('model')" style="display: none;">Modell trainieren</button>
 </div>
 
- <!-- Resolution Section -->
- <h2 class="mt-4">Auflösung</h2>
- <div class="mb-3">
-     <label for="resolution-slider" class="form-label">Resolution:</label>
-     <input type="range" class="form-range" id="resolution-slider" min="1" max="10" value="9" />
-     <p id="resolution-value"> 30 Meter pro Pixel</p>
- </div>
 
  <!-- Calculation Section -->
      <h2 class="mt-4">Berechnung starten</h2>

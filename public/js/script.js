@@ -505,10 +505,8 @@ function trainModel() {
 
 
 function trainManually() {
-  // Code für eigenes neues Modell selbst trainieren
+  window.location.href = "Trainingsdata.html";
 
-  // Annahme: Das manuelle Training war erfolgreich
-  alert('Modell erfolgreich trainiert');
 }
 function useTrainedModel(){
   alert("No trained models available!")
