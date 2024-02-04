@@ -60,24 +60,54 @@ exports.create = async (req, res) => {
 
 
   if (calculation == "NDVI") {
-    //calculates ndvi
-    var builder = await con.buildProcess();
-    var datacube_init = builder.load_collection(
-      "sentinel-s2-l2a-cogs",
-      cordjson,
-      ["2018-06-01", "2018-06-30"],
-      undefined,
-      resolution
-    );
-    console.log("calculate NDVI!")
-    datacube_filtered = builder.filter_bands(datacube_init, ["B04", "B08"]);
-    datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
-    datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04")
+    const geojsonFilePath = "./public/results/trainingsites.geojson";
+    let geojsonContent;
+    let geojsonString
+    try {
+      geojsonContent = fs.readFileSync(geojsonFilePath, 'utf8');
+      geojsonString = JSON.stringify(geojsonContent)
+    } catch (err) {
+
+      console.error('Error reading GeoJSON file:', err);
+    }
+      var builder = await con.buildProcess();
+      var datacube_init = builder.load_collection(
+        "sentinel-s2-l2a-cogs",
+
+        {
+          west: 837596.9559,
+          south: 6785525.2027,
+          east: 857222.1630,
+          north: 6798404.8420,
+          crs: 3857
+        },
+        ["2020-06-01", "2020-06-30"],
+        undefined,
+        150
+      );
+      datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
+      datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
+      datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04", true)
+      model = builder.train_model(datacube_ndvi, geojsonContent)
+      var datacube_init2 = builder.load_collection(
+        "sentinel-s2-l2a-cogs",
+        cordjson,
+        ["2018-06-01", "2018-06-30"],
+        undefined,
+        resolution
+      );
+      datacube_filtered2 = builder.filter_bands(datacube_init2, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
+      datacube_agg2 = builder.aggregate_temporal_period(datacube_filtered2, "month", "median")
+      datacube_ndvi2 = builder.ndvi(datacube_agg2, "B08", "B04", true)
+      test = builder.classify(datacube_ndvi2, model)
+    
+   
+      result = builder.save_result(test, "GTiff");
+      await con.downloadResult(test, "./public/results/prediction.tif");
+      console.log("model trained!")
 
 
-    result = builder.save_result(datacube_ndvi, "GTiff");
-    await con.downloadResult(datacube_ndvi, "./public/results/result.tif");
-    console.log("maybe done?");
+
   } else if (calculation == "composite") {
     console.log("calculate Composite!")
     //calculates cloud free composite:
@@ -105,7 +135,6 @@ exports.create = async (req, res) => {
     
     const geojsonFilePath = "./public/results/trainingsites.geojson";
     let geojsonContent;
-    let geojsonString
     try {
       geojsonContent = fs.readFileSync(geojsonFilePath, 'utf8');
       geojsonString = JSON.stringify(geojsonContent)

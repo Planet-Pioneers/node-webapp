@@ -115,7 +115,7 @@ document.getElementById('geojson-file-input2').addEventListener('change', functi
   const reader = new FileReader();
 
   reader.onload = function (event) {
-    trainingdata  = JSON.parse(event.target.result);
+    trainingdata = JSON.parse(event.target.result);
   };
 
   reader.readAsText(file);
@@ -182,7 +182,7 @@ function saveTime() {
     const timeDifference = endTimestamp - startTimestamp;
 
     // Define the maximum allowed duration (4 weeks in milliseconds)
-    const maxDuration = 2*4 * 7 * 24 * 60 * 60 * 1000;
+    const maxDuration = 2 * 4 * 7 * 24 * 60 * 60 * 1000;
 
     // Check if the selected duration is within the allowed range
     if (timeDifference <= maxDuration) {
@@ -349,25 +349,31 @@ async function startDownload(calc) {
     const responseData = await api_call('jobs', 'POST', "/", obj);
     console.log("response: ", responseData)
     calculation = responseData.calculation; // This will log the response data to the console
+    classes = 7;
+    // classes = responseData.classes
+    //TODO: Existiert noch nicht aber diese Anzahl wäre dann wie viele Klassen es gibt. Daraufhin muss die Legende skaliert werden
   } catch (error) {
     console.error(error); // Handle errors here
   }
   if (calculation == "NDVI") {
-    var url_to_geotiff_file = "../results/result.tif"
+    //Initiate Legend
+    L.Control.Legend = L.Control.extend({
+      onAdd: function (map) {
+        //create_legend Funktion unten wird aufgerufen
+        return create_legend();
+      }
+    });
+    L.control.Legend = function (opts) {
+      return new L.Control.Legend(opts);
+    }
+    L.control.Legend({ position: 'bottomright' }).addTo(map);
+
+    var url_to_geotiff_file = "../results/prediction.tif"
     // Chroma color scale definition
+    //TODO: Welche Farben nimmt man wenn man nicht weiß wie viele Klassen es gibt? Domain muss auch dynamisch gemacht werden
     const scale = chroma.scale([
-      '#640000',
-      '#ff0000',
-      '#ffff00',
-      '#00c800',
-      '#006400'
-    ]).domain([
-      0,
-      0.2,
-      0.4,
-      0.6,
-      0.8
-    ]);
+      '#F4A460', '#008000', '#8B0000', '#0000FF', '#228B22', '#90EE90', '#FF0000'
+    ]).domain([1, 2, 3, 4, 5, 6, 7]);
 
 
     fetch(url_to_geotiff_file)
@@ -400,7 +406,7 @@ async function startDownload(calc) {
 
         });
       });
-      alert("Classification done! Please view it on the map")
+    alert("Classification done! Please view it on the map")
   } else if (calculation == "composite") {
     var url_to_geotiff_file = "../results/composite.tif"
 
@@ -419,20 +425,20 @@ async function startDownload(calc) {
             const maxGreen = georaster.maxs[1];;
             const minBlue = georaster.mins[2];;
             const maxBlue = georaster.maxs[2];;
-          
+
             // Scale the values to the 0-255 range
             red = Math.round(255 * (red - minRed) / (maxRed - minRed));
             green = Math.round(255 * (green - minGreen) / (maxGreen - minGreen));
             blue = Math.round(255 * (blue - minBlue) / (maxBlue - minBlue));
-          
+
             // Ensure values are within the 0-255 range
             red = Math.min(Math.max(red, 0), 255);
             green = Math.min(Math.max(green, 0), 255);
             blue = Math.min(Math.max(blue, 0), 255);
-          
+
             return `rgb(${red}, ${green}, ${blue})`;
           };
-          
+
 
           /*
               GeoRasterLayer is an extension of GridLayer,
@@ -454,28 +460,80 @@ async function startDownload(calc) {
 
         });
       });
-      alert("Composite calculation done! Please view it on the map")
-  } else if (calculation == "model" ){
+    alert("Composite calculation done! Please view it on the map")
+  } else if (calculation == "model") {
     alert("Model calculation done!")
   }
 
 }
 
+function create_legend() {
+  //TODO: Größe vom Canvas auf anzahl der Klassen anpassen?
+  let cs = L.DomUtil.create('canvas');
+  const legend_plane_width = 100;
+  const legend_plane_height = 240;
+  const div_num = 100;
+  const margin_left = 10;
+  const margin_top = 30;
+  const legend_width = 30;
+  const div_height = 2;
+  const tick_length = 5;
+  const margin_text_lengend = 30;
+  cs.width = legend_plane_width;
+  cs.height = legend_plane_height;
+  if (cs.getContext) {
+    let ctx = cs.getContext('2d');
+    //TODO: Chroma scale an chroma scale oben anpassen
+    let scl = chroma.scale(['#F4A460', '#008000', '#8B0000', '#0000FF', '#228B22', '#90EE90', '#FF0000']).classes(7);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, legend_plane_width, legend_plane_height);
+    //Ich check nicht so genau was hier passiert warum ist div_num 100? aber es müssen jedenfalls die Rechtecke mit den Farben auf das große Rechteck skaliert werden
+    for (let i = 0; i < div_num; i++) {
+      ctx.fillStyle = scl((div_num - i) / div_num);
+      ctx.fillRect(margin_left, margin_top + i * div_height, legend_width, div_height);
+    }
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+    ctx.textBaseline = 'center';
+    ctx.textAlign = 'left';
+    ctx.font = '12px sans-serif';
+    ctx.fillStyle = 'black';
+    ctx.fillText("LULC", 4, 20);
+    const left_pos_top = 46;
+    const top_pos = 45;
+    ctx.textAlign = 'right';
+    const left_pos_2nd = 90;
+    //TODO Label ändern zu labels aus dem Model (das es noch nicht gibt hier)
+    getLandCoverLabel = ["Fallow field", "Grassland", "Industrial", "Inland water", "Mixed forest", "Planted field", "Urban"]
+    //TODO: Hier die Position vom Text anpassen. Warum nicht die gleiche Skalierung nehmen wie bei den Rechtecken?
+    //Weil das aus irgend einem grund nicht klappt
+    ctx.fillText("Fallow field", left_pos_2nd, top_pos);
+    ctx.fillText("Grassland", left_pos_2nd, top_pos + 30);
+    ctx.fillText("Industrial", left_pos_2nd, top_pos + 63);
+    ctx.fillText("Inland water", left_pos_2nd, top_pos + 90);
+    ctx.fillText("Mixed forest", left_pos_2nd, top_pos + 120);
+    ctx.fillText(" Planted field", left_pos_2nd - 1, top_pos + 150);
+    ctx.fillText("Urban", left_pos_2nd - 2, top_pos + 180);
+  }
+  return cs;
+}
 
-function downloadFile(filename){
+
+
+function downloadFile(filename) {
   const filePath = `../results/${filename}`;
   const link = document.createElement('a');
-    link.href = filePath;
-    link.download = filename;
+  link.href = filePath;
+  link.download = filename;
 
-    // Append the link to the body
-    document.body.appendChild(link);
+  // Append the link to the body
+  document.body.appendChild(link);
 
-    // Trigger a click on the link to start the download
-    link.click();
+  // Trigger a click on the link to start the download
+  link.click();
 
-    // Remove the link from the DOM
-    document.body.removeChild(link);
+  // Remove the link from the DOM
+  document.body.removeChild(link);
 }
 
 function showTrainButton() {
@@ -508,7 +566,7 @@ function trainManually() {
   window.location.href = "Trainingsdata.html";
 
 }
-function useTrainedModel(){
+function useTrainedModel() {
   alert("No trained models available!")
 }
 
