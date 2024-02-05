@@ -581,13 +581,15 @@ function useTrainedModel() {
       return response.json();
     })
     .then(data => {
+      //hier wird über die vorhandenen Models gelooped
      data.forEach(model =>{
-      console.log(model[0])
+      console.log(model[0]) // das ist der Name vom Model
+      //der Rest sind extra infos
       console.log(model[1])
       console.log(model[3])
       console.log(model[5])
       console.log(model[8])
-
+      //maybe für jedes model einen Knopf und dann jeweis ein dropdown mit den extra infos? oder ein popup?
      })
 
     })
