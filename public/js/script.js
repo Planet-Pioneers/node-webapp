@@ -341,7 +341,9 @@ async function startDownload(calc) {
     date: job.date,
     coordinates: job.coordinates,
     resolution: job.resolution,
-    calculation: calc
+    calculation: calc,
+    model_id: job.model_id,
+    classes: job.classes
   }
   console.log(obj)
   let calculation;
@@ -349,7 +351,9 @@ async function startDownload(calc) {
     const responseData = await api_call('jobs', 'POST', "/", obj);
     console.log("response: ", responseData)
     calculation = responseData.calculation; // This will log the response data to the console
-    classes = 7;
+    //Anzahl der classes wird aus dem job ausgelesen. Im moment noch in UseTrainedModel, später dann über die Auswahl von model
+    classes = job.classes;
+    console.log("selected Model has " , classes , " classes")
     // classes = responseData.classes
     //TODO: Existiert noch nicht aber diese Anzahl wäre dann wie viele Klassen es gibt. Daraufhin muss die Legende skaliert werden
   } catch (error) {
@@ -584,12 +588,27 @@ function useTrainedModel() {
       //hier wird über die vorhandenen Models gelooped
      data.forEach(model =>{
       console.log(model[0]) // das ist der Name vom Model
-      //der Rest sind extra infos
+      //der Rest sind die extra infos
       console.log(model[1])
       console.log(model[3])
       console.log(model[5])
       console.log(model[8])
       //maybe für jedes model einen Knopf und dann jeweis ein dropdown mit den extra infos? oder ein popup?
+
+
+      //This is how you select a model and save the number of classes the selected model has.
+      //it should happen when you select a model.
+      modelname = model[0];
+      const model_name = modelname.match(/model(\d+)\./);
+      job.model_id = model_name[1];
+      console.log("model_id added")
+      classes = model[5];
+      numberofclasses = classes[2] //it's the third character of the string...
+      job.classes = numberofclasses;
+      console.log("classes added")
+      console.log("job: " , job)
+
+      
      })
 
     })

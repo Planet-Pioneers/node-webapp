@@ -60,6 +60,9 @@ exports.create = async (req, res) => {
 
 
   if (calculation == "NDVI") {
+    console.log("model selected:")
+    console.log(req.body.model_id);
+    model_id = req.body.model_id;
       var builder = await con.buildProcess();
       var datacube_init2 = builder.load_collection(
         "sentinel-s2-l2a-cogs",
@@ -71,7 +74,7 @@ exports.create = async (req, res) => {
       datacube_filtered2 = builder.filter_bands(datacube_init2, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
       datacube_agg2 = builder.aggregate_temporal_period(datacube_filtered2, "month", "median")
       datacube_ndvi2 = builder.ndvi(datacube_agg2, "B08", "B04", true)
-      test = builder.classify(datacube_ndvi2, "1234")
+      test = builder.classify(datacube_ndvi2, model_id)
     
    
       result = builder.save_result(test, "GTiff");
@@ -103,7 +106,6 @@ exports.create = async (req, res) => {
 
 
   } else if (calculation == "model") {
-
     
     const geojsonFilePath = "./public/results/trainingsites.geojson";
     let geojsonContent;
