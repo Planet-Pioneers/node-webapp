@@ -567,8 +567,37 @@ function trainManually() {
 
 }
 function useTrainedModel() {
-  alert("No trained models available!")
+  const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
+
+  // Make a GET request using the fetch API
+  fetch(apiUrl)
+    .then(response => {
+      // Check if the response is successful (status code in the range 200-299)
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Parse the JSON response
+      return response.json();
+    })
+    .then(data => {
+     data.forEach(model =>{
+      console.log(model[0])
+      console.log(model[1])
+      console.log(model[3])
+      console.log(model[5])
+      console.log(model[8])
+
+     })
+
+    })
+    .catch(error => {
+      // Handle errors during the fetch operation
+      console.error("Error during fetch operation:", error);
+    });
 }
+// Reformatting function
+
 
 const resolutionSlider = document.getElementById('resolution-slider');
 const resolutionValue = document.getElementById('resolution-value');

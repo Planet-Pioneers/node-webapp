@@ -46,7 +46,7 @@ exports.create = async (req, res) => {
   console.log("trying to connect to openeocubes on http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000")
   //docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' r-backend and then use that ip adress instead of localhost!
 
-  //const con = await OpenEO.connect("http://172.18.0.2:8000")
+  //const con = await OpenEO.connect("http://127.0.0.1:8000")
   //const con = await OpenEO.connect("http://localhost:8000")
   // Connect to the back-end when deployed on AWS
   const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
@@ -60,35 +60,7 @@ exports.create = async (req, res) => {
 
 
   if (calculation == "NDVI") {
-    const geojsonFilePath = "./public/results/trainingsites.geojson";
-    let geojsonContent;
-    let geojsonString
-    try {
-      geojsonContent = fs.readFileSync(geojsonFilePath, 'utf8');
-      geojsonString = JSON.stringify(geojsonContent)
-    } catch (err) {
-
-      console.error('Error reading GeoJSON file:', err);
-    }
       var builder = await con.buildProcess();
-      var datacube_init = builder.load_collection(
-        "sentinel-s2-l2a-cogs",
-
-        {
-          west: 837596.9559,
-          south: 6785525.2027,
-          east: 857222.1630,
-          north: 6798404.8420,
-          crs: 3857
-        },
-        ["2020-06-01", "2020-06-30"],
-        undefined,
-        150
-      );
-      datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
-      datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
-      datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04", true)
-      model = builder.train_model(datacube_ndvi, geojsonContent)
       var datacube_init2 = builder.load_collection(
         "sentinel-s2-l2a-cogs",
         cordjson,
@@ -99,12 +71,12 @@ exports.create = async (req, res) => {
       datacube_filtered2 = builder.filter_bands(datacube_init2, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
       datacube_agg2 = builder.aggregate_temporal_period(datacube_filtered2, "month", "median")
       datacube_ndvi2 = builder.ndvi(datacube_agg2, "B08", "B04", true)
-      test = builder.classify(datacube_ndvi2, model)
+      test = builder.classify(datacube_ndvi2, "1234")
     
    
       result = builder.save_result(test, "GTiff");
       await con.downloadResult(test, "./public/results/prediction.tif");
-      console.log("model trained!")
+      console.log("prediction done!")
 
 
 
@@ -161,7 +133,7 @@ exports.create = async (req, res) => {
       datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
       datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04", true)
       //console.log(geojsonContent)
-      model = builder.train_model(datacube_ndvi, geojsonContent)
+      model = builder.train_model(datacube_ndvi, geojsonContent, "1234")
       //classification = builder.classify(datacube_ndvi, model)
 
 
@@ -171,7 +143,6 @@ exports.create = async (req, res) => {
 
 
   }
-
   // Save Job in the database
   job
     .save(job)
