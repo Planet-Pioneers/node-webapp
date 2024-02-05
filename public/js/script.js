@@ -470,8 +470,8 @@ async function startDownload(calc) {
 function create_legend() {
   //TODO: Größe vom Canvas auf anzahl der Klassen anpassen?
   let cs = L.DomUtil.create('canvas');
-  const legend_plane_width = 100;
-  const legend_plane_height = 240;
+  const legend_plane_width = 125;
+  const legend_plane_height = 245;
   const div_num = 100;
   const margin_left = 10;
   const margin_top = 30;
@@ -498,11 +498,11 @@ function create_legend() {
     ctx.textAlign = 'left';
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'black';
-    ctx.fillText("LULC", 4, 20);
+    ctx.fillText("Legende", 4, 20);
     const left_pos_top = 46;
     const top_pos = 45;
-    ctx.textAlign = 'right';
-    const left_pos_2nd = 90;
+    ctx.textAlign = 'left';
+    const left_pos_2nd = 45;
     //TODO Label ändern zu labels aus dem Model (das es noch nicht gibt hier)
     getLandCoverLabel = ["Fallow field", "Grassland", "Industrial", "Inland water", "Mixed forest", "Planted field", "Urban"]
     //TODO: Hier die Position vom Text anpassen. Warum nicht die gleiche Skalierung nehmen wie bei den Rechtecken?
@@ -512,7 +512,7 @@ function create_legend() {
     ctx.fillText("Industrial", left_pos_2nd, top_pos + 63);
     ctx.fillText("Inland water", left_pos_2nd, top_pos + 90);
     ctx.fillText("Mixed forest", left_pos_2nd, top_pos + 120);
-    ctx.fillText(" Planted field", left_pos_2nd - 1, top_pos + 150);
+    ctx.fillText("Planted field", left_pos_2nd - 1, top_pos + 150);
     ctx.fillText("Urban", left_pos_2nd - 2, top_pos + 180);
   }
   return cs;
