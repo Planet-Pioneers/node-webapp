@@ -573,6 +573,9 @@ function trainManually() {
 function useTrainedModel() {
   const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
 
+  // Container, in den wir die Modelle einfügen werden
+  const modelContainer = document.getElementById("model-container");
+
   // Make a GET request using the fetch API
   fetch(apiUrl)
     .then(response => {
@@ -585,7 +588,7 @@ function useTrainedModel() {
       return response.json();
     })
     .then(data => {
-      //hier wird über die vorhandenen Models gelooped
+      /* //hier wird über die vorhandenen Models gelooped
      data.forEach(model =>{
       console.log(model[0]) // das ist der Name vom Model
       //der Rest sind die extra infos
@@ -606,17 +609,69 @@ function useTrainedModel() {
       numberofclasses = classes[2] //it's the third character of the string...
       job.classes = numberofclasses;
       console.log("classes added")
-      console.log("job: " , job)
+      console.log("job: " , job)*/
 
-      
-     })
+      // Erstelle eine Tabelle
+      const table = document.createElement("table");
+      table.classList.add("model-table");
 
+      // Erstelle eine Tabellenüberschrift
+      const tableHeader = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      const headers = ["Model Name", "Algorithmus", "Anzahl Samples", "Klassen", "Resampling", ""];
+      headers.forEach(headerText => {
+        const header = document.createElement("th");
+        header.textContent = headerText;
+        headerRow.appendChild(header);
+      });
+      tableHeader.appendChild(headerRow);
+      table.appendChild(tableHeader);
+
+      // Loop durch die Modelle und füge sie der Tabelle hinzu
+      const tableBody = document.createElement("tbody");
+      data.forEach(model => {
+        const row = document.createElement("tr");
+        const modelName = document.createElement("td");
+        modelName.textContent = model[0];
+        const extraInfo1 = document.createElement("td");
+        extraInfo1.textContent = model[1];
+        const extraInfo2 = document.createElement("td");
+        extraInfo2.textContent = model[3];
+        const extraInfo3 = document.createElement("td");
+        extraInfo3.textContent = model[5];
+        const extraInfo4 = document.createElement("td");
+        extraInfo4.textContent = model[8];
+        const selectButtonCell = document.createElement("td");
+        const selectButton = document.createElement("button");
+        selectButton.textContent = "Select Model";
+        selectButton.dataset.modelName = model[0];
+        selectButton.addEventListener("click", function() {
+          const modelName = this.dataset.modelName;
+          const model_name = modelName.match(/model(\d+)\./);
+          job.model_id = model_name[1];
+          console.log("model_id added");
+          job.classes = model[5][2];
+          console.log("classes added");
+          console.log("job: ", job);
+        });
+        selectButtonCell.appendChild(selectButton);
+        row.appendChild(modelName);
+        row.appendChild(extraInfo1);
+        row.appendChild(extraInfo2);
+        row.appendChild(extraInfo3);
+        row.appendChild(extraInfo4);
+        row.appendChild(selectButtonCell);
+        tableBody.appendChild(row);
+      });
+      table.appendChild(tableBody);
+      modelContainer.appendChild(table);
     })
     .catch(error => {
       // Handle errors during the fetch operation
       console.error("Error during fetch operation:", error);
     });
 }
+
 // Reformatting function
 
 

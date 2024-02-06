@@ -58,8 +58,8 @@
             }
         }
         
-
-        /* Popup container */
+/*Wofür das mit dem Popup?
+/* Popup container */
 .popup {
     position: relative;
     display: inline-block;
@@ -111,3 +111,40 @@
     from {opacity: 0;}
     to {opacity:1 ;}
   }
+  /* Modelltabelle */
+.model-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.model-table th, .model-table td {
+  border: 1px solid #dddddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.model-table th {
+  background-color: #f2f2f2;
+}
+
+.model-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.model-table tbody tr:hover {
+  background-color: #f0f0f0;
+}
+
+.model-table button {
+  padding: 5px 10px;
+  border: none;
+  background-color: #195657;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.model-table button:hover {
+  background-color: #123e40;
+}
