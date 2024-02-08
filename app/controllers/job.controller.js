@@ -43,13 +43,16 @@ exports.create = async (req, res) => {
   console.log(cordjson);
 
 
-  console.log("trying to connect to openeocubes on http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000")
-  //docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' r-backend and then use that ip adress instead of localhost!
+  console.log("trying to connect to openeocubes on http://r-backend:8000")
+  //sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINER ID 
+  //and then use that ip adress instead of localhost!
+   //const con = await OpenEO.connect("http://127.0.0.1:8000")
+  const con = await OpenEO.connect("http://r-backend:8000")
 
-  //const con = await OpenEO.connect("http://127.0.0.1:8000")
-  //const con = await OpenEO.connect("http://localhost:8000")
+ 
+  
   // Connect to the back-end when deployed on AWS
-  const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
+  //const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
 
   // Basic login with default params
   await con.authenticateBasic("user", "password");
@@ -57,6 +60,12 @@ exports.create = async (req, res) => {
   var info = con.capabilities();
   console.log("API Version: ", info.apiVersion());
   console.log("Description: ", info.description());
+  console.log("Available Processes:");
+  var response = await con.listProcesses();
+  response.processes.forEach(process => {
+    console.log(`${process.id}: ${process.summary}`);
+  });
+
 
 
   if (calculation == "NDVI") {
@@ -106,7 +115,12 @@ exports.create = async (req, res) => {
 
 
   } else if (calculation == "model") {
+    //create uid for model
+    const uid = Date.now().toString() + Math.floor(Math.random() * 1000000).toString();   
+    console.log(uid)
     
+    //replace this with a api call to new route /training where trainingdata will be stored in mongodb.
+    //then get minmax bounds of the trainingdata here. 
     const geojsonFilePath = "./public/results/trainingsites.geojson";
     let geojsonContent;
     try {
@@ -135,7 +149,7 @@ exports.create = async (req, res) => {
       datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
       datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04", true)
       //console.log(geojsonContent)
-      model = builder.train_model(datacube_ndvi, geojsonContent, "1234")
+      model = builder.train_model(datacube_ndvi, geojsonContent, uid)
       //classification = builder.classify(datacube_ndvi, model)
 
 

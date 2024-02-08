@@ -148,3 +148,8 @@
 .model-table button:hover {
   background-color: #123e40;
 }
+
+.selected-row {
+  border: 2px solid #3498db; /* You can customize the border color */
+  /* Add any other styling you want for the selected row */
+}

@@ -353,7 +353,7 @@ async function startDownload(calc) {
     calculation = responseData.calculation; // This will log the response data to the console
     //Anzahl der classes wird aus dem job ausgelesen. Im moment noch in UseTrainedModel, später dann über die Auswahl von model
     classes = job.classes;
-    console.log("selected Model has " , classes , " classes")
+    console.log("selected Model has ", classes, " classes")
     // classes = responseData.classes
     //TODO: Existiert noch nicht aber diese Anzahl wäre dann wie viele Klassen es gibt. Daraufhin muss die Legende skaliert werden
   } catch (error) {
@@ -467,6 +467,7 @@ async function startDownload(calc) {
     alert("Composite calculation done! Please view it on the map")
   } else if (calculation == "model") {
     alert("Model calculation done!")
+    useTrainedModel();
   }
 
 }
@@ -511,13 +512,13 @@ function create_legend() {
     getLandCoverLabel = ["Fallow field", "Grassland", "Industrial", "Inland water", "Mixed forest", "Planted field", "Urban"]
     //TODO: Hier die Position vom Text anpassen. Warum nicht die gleiche Skalierung nehmen wie bei den Rechtecken?
     //Weil das aus irgend einem grund nicht klappt
-    ctx.fillText("Fallow field", left_pos_2nd, top_pos);
-    ctx.fillText("Grassland", left_pos_2nd, top_pos + 30);
-    ctx.fillText("Industrial", left_pos_2nd, top_pos + 63);
+    ctx.fillText("Urban", left_pos_2nd, top_pos);
+    ctx.fillText("Planted field", left_pos_2nd, top_pos + 30);
+    ctx.fillText("Mixed forest", left_pos_2nd, top_pos + 63);
     ctx.fillText("Inland water", left_pos_2nd, top_pos + 90);
-    ctx.fillText("Mixed forest", left_pos_2nd, top_pos + 120);
-    ctx.fillText("Planted field", left_pos_2nd - 1, top_pos + 150);
-    ctx.fillText("Urban", left_pos_2nd - 2, top_pos + 180);
+    ctx.fillText("Industrial", left_pos_2nd, top_pos + 120);
+    ctx.fillText("Grassland", left_pos_2nd - 1, top_pos + 150);
+    ctx.fillText("UrbanFallow field", left_pos_2nd - 2, top_pos + 180);
   }
   return cs;
 }
@@ -571,7 +572,9 @@ function trainManually() {
 
 }
 function useTrainedModel() {
-  const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
+  //const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
+  const apiUrl = "http://r-backend:8000/models";
+  console.log("url = ", apiUrl)
 
   // Container, in den wir die Modelle einfügen werden
   const modelContainer = document.getElementById("model-container");
@@ -588,29 +591,6 @@ function useTrainedModel() {
       return response.json();
     })
     .then(data => {
-      /* //hier wird über die vorhandenen Models gelooped
-     data.forEach(model =>{
-      console.log(model[0]) // das ist der Name vom Model
-      //der Rest sind die extra infos
-      console.log(model[1])
-      console.log(model[3])
-      console.log(model[5])
-      console.log(model[8])
-      //maybe für jedes model einen Knopf und dann jeweis ein dropdown mit den extra infos? oder ein popup?
-
-
-      //This is how you select a model and save the number of classes the selected model has.
-      //it should happen when you select a model.
-      modelname = model[0];
-      const model_name = modelname.match(/model(\d+)\./);
-      job.model_id = model_name[1];
-      console.log("model_id added")
-      classes = model[5];
-      numberofclasses = classes[2] //it's the third character of the string...
-      job.classes = numberofclasses;
-      console.log("classes added")
-      console.log("job: " , job)*/
-
       // Erstelle eine Tabelle
       const table = document.createElement("table");
       table.classList.add("model-table");
@@ -645,15 +625,26 @@ function useTrainedModel() {
         const selectButton = document.createElement("button");
         selectButton.textContent = "Select Model";
         selectButton.dataset.modelName = model[0];
+        
         selectButton.addEventListener("click", function() {
-          const modelName = this.dataset.modelName;
-          const model_name = modelName.match(/model(\d+)\./);
-          job.model_id = model_name[1];
-          console.log("model_id added");
-          job.classes = model[5][2];
-          console.log("classes added");
-          console.log("job: ", job);
+            // Remove highlighting from previously selected row
+            const previouslySelectedRow = document.querySelector('.selected-row');
+            if (previouslySelectedRow) {
+                previouslySelectedRow.classList.remove('selected-row');
+            }
+    
+            // Highlight the current row
+            row.classList.add('selected-row');
+    
+            const modelName = this.dataset.modelName;
+            const model_name = modelName.match(/model(\d+)\./);
+            job.model_id = model_name[1];
+            console.log("model_id added");
+            job.classes = model[5][2];
+            console.log("classes added");
+            console.log("job: ", job);
         });
+    
         selectButtonCell.appendChild(selectButton);
         row.appendChild(modelName);
         row.appendChild(extraInfo1);
@@ -662,7 +653,7 @@ function useTrainedModel() {
         row.appendChild(extraInfo4);
         row.appendChild(selectButtonCell);
         tableBody.appendChild(row);
-      });
+    });
       table.appendChild(tableBody);
       modelContainer.appendChild(table);
     })
