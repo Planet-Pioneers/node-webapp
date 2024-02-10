@@ -55,7 +55,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 // Variables to store drawn layers
 let drawnItems = new L.FeatureGroup();
+let trainingItems = new L.FeatureGroup();
 map.addLayer(drawnItems);
+map.addLayer(trainingItems);
+
 
 // Initialize an array to store drawn and GeoJSON layers
 let allLayers = [];
@@ -168,12 +171,70 @@ async function is_valid_geojson(geojson) {
   return true;
 }
 
-async function uploadTrainingData(){
+async function uploadTrainingData() {
   const geojson = job.trainingdata;
   const valid = await is_valid_geojson(geojson);
   console.log(valid)
-  if(valid){
-    alert("trainingdata is valid!")
+  if (valid) {
+    let crstring = geojson.crs.properties.name;
+    const concatenatedNumber = Number((crstring.match(/\d+/g) || []).join(''));
+
+    // Check if a match is found
+    if (concatenatedNumber) {
+      proj4.defs("EPSG:32632", "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs +type=crs");
+
+      // Extract the crs
+      console.log(concatenatedNumber);
+      let crs = `EPSG:${concatenatedNumber}`;
+      console.log("before:" ,geojson);
+
+      // Function to alter coordinates (modify this according to your requirements)
+      function convertCoordinates(coordinates) {
+          return coordinates.map(coord => {
+              // Convert coordinates to EPSG:4326
+              const convertedCoord = proj4(crs, 'EPSG:4326', coord);
+              return convertedCoord;
+          });
+      }
+      
+      // Create a new GeoJSON object with modified coordinates
+      const modifiedGeojson = {
+          type: 'FeatureCollection',
+          features: geojson.features.map(feature => {
+              const geometry = feature.geometry;
+      
+              // Check if the geometry is a Polygon
+              if (geometry.type === 'Polygon') {
+                  // Clone the original feature and modify the coordinates
+                  const modifiedFeature = JSON.parse(JSON.stringify(feature));
+                  modifiedFeature.geometry.coordinates[0] = convertCoordinates(geometry.coordinates[0]);
+      
+                  return modifiedFeature;
+              } else {
+                  return feature;
+              }
+          })
+      };
+      
+      console.log("after:" , modifiedGeojson);
+      
+      // Add the modified GeoJSON to the Leaflet map
+      const geoJsonLayer = L.geoJSON(modifiedGeojson).addTo(map);
+      // Hier adde ich die trainingspolygone einfach zu all layers das ist zwar dumm aber mein Kopf funktioniert nichtmehr
+      //vielleicht eine eigene feature layer für die erzeugen damit man die einzeln löschen (oder ausblenden kann)
+      // Als ich die funktion confirmarea() geschrieben habe waren mir die AllLayers mit den geojson daten nicht aufgefallen
+      // TODO: wenn polygone entfernt werden die auch aus all layers entfernen
+      // und gucken dass es genau ein polygon gibt. Vielleicht auch allLayers auflösen und alle nur noch in drawnItems speichern? Not sure...
+      allLayers.push(geoJsonLayer);
+
+
+      // Optionally, fit the map bounds to the newly added GeoJSON layer
+      map.fitBounds(geoJsonLayer.getBounds());
+      alert("trainingdata is valid!")
+    } else {
+      console.log("No EPSG:: code found in the string.");
+    }
+
   }
 }
 
@@ -336,6 +397,7 @@ function saveData() {
       // Add GeoJSON to the map
       const geoJsonLayer = L.geoJSON(geoJsonData).addTo(map);
 
+
       // Show the popup for the GeoJSON layer
       drawPopup(geoJsonLayer);
     } else {
@@ -369,6 +431,9 @@ function showSection(sectionId) {
 // Function for the "Continue" button in the "Confirmation of Area" section
 function confirmArea() {
   const drawnLayerCount = Object.keys(drawnItems._layers).length;
+  const geoJSONLayerCount = Object.keys(allLayers).length;
+  console.log(geoJSONLayerCount)
+  console.log(drawnItems)
 
   if (drawnLayerCount === 1 && job.date !== "") {
     showSection('algorithm-section');
@@ -629,8 +694,8 @@ function trainManually() {
 
 }
 function useTrainedModel() {
-  //const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
-  const apiUrl = "http://localhost:8000/models";
+  const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
+  //const apiUrl = "http://localhost:8000/models";
   console.log("url = ", apiUrl)
 
   // Container, in den wir die Modelle einfügen werden
