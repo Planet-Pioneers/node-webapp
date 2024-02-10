@@ -116,10 +116,66 @@ document.getElementById('geojson-file-input2').addEventListener('change', functi
 
   reader.onload = function (event) {
     trainingdata = JSON.parse(event.target.result);
+    job.trainingdata = trainingdata;
+    console.log("after uploading trainingdata:")
+    console.log(job)
   };
 
   reader.readAsText(file);
 });
+
+async function is_valid_geojson(geojson) {
+  if (geojson.type !== 'FeatureCollection') {
+    alert("has to be featurecollection")
+    return false;
+  }
+  if (!geojson.features || !Array.isArray(geojson.features)) {
+    alert("has to contain some features")
+    return false;
+  }
+  if (!geojson.crs) {
+    alert("needs a crs like : crs: { type: name, properties: { name: urn:ogc:def:crs:EPSG::32632 } }")
+    return false;
+  }
+  // Check each feature in 'features'
+  for (const feature of geojson.features) {
+    // Check if each feature is a dictionary
+    if (typeof feature !== 'object' || feature === null) {
+      return false;
+    }
+
+    // Check if each feature has the required properties
+    if (!feature.type || !feature.properties || !feature.geometry) {
+      return false;
+    }
+    // Check properties for FID, Label, and ClassID
+    const properties = feature.properties;
+    if (
+      typeof properties.FID !== 'number' ||
+      typeof properties.Label !== 'string' ||
+      typeof properties.ClassID !== 'number'
+    ) {
+      alert("please provide FID, Label and ClassID under properties")
+      return false;
+    }
+
+
+    // Check if the geometry type is 'Polygon'
+    if (feature.geometry.type !== 'Polygon') {
+      return false;
+    }
+  }
+  return true;
+}
+
+async function uploadTrainingData(){
+  const geojson = job.trainingdata;
+  const valid = await is_valid_geojson(geojson);
+  console.log(valid)
+  if(valid){
+    alert("trainingdata is valid!")
+  }
+}
 
 /*
 // Load the Rivers GeoPackage and display the tile layer
@@ -127,7 +183,7 @@ L.geoPackageTileLayer({
   geoPackageUrl: 'http://ngageoint.github.io/GeoPackage/examples/rivers.gpkg',
   layerName: 'rivers_tiles'
 }).addTo(map);
-
+ 
 // Load the Rivers GeoPackage and display the feature layer
 L.geoPackageFeatureLayer([], {
   geoPackageUrl: 'http://ngageoint.github.io/GeoPackage/examples/rivers.gpkg',
@@ -343,7 +399,8 @@ async function startDownload(calc) {
     resolution: job.resolution,
     calculation: calc,
     model_id: job.model_id,
-    classes: job.classes
+    classes: job.classes,
+    trainingdata: job.trainingdata
   }
   console.log(obj)
   let calculation;
@@ -573,7 +630,7 @@ function trainManually() {
 }
 function useTrainedModel() {
   //const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
-  const apiUrl = "http://r-backend:8000/models";
+  const apiUrl = "http://localhost:8000/models";
   console.log("url = ", apiUrl)
 
   // Container, in den wir die Modelle einfügen werden
@@ -591,6 +648,13 @@ function useTrainedModel() {
       return response.json();
     })
     .then(data => {
+      // Check if a table with class 'model-table' already exists
+      const existingTable = document.querySelector('.model-table');
+
+      // If a table exists, remove it from the DOM
+      if (existingTable) {
+        existingTable.parentNode.removeChild(existingTable);
+      }
       // Erstelle eine Tabelle
       const table = document.createElement("table");
       table.classList.add("model-table");
@@ -614,37 +678,38 @@ function useTrainedModel() {
         const modelName = document.createElement("td");
         modelName.textContent = model[0];
         const extraInfo1 = document.createElement("td");
-        extraInfo1.textContent = model[1];
+        extraInfo1.textContent = model[4];
         const extraInfo2 = document.createElement("td");
-        extraInfo2.textContent = model[3];
+        extraInfo2.textContent = model[6];
         const extraInfo3 = document.createElement("td");
-        extraInfo3.textContent = model[5];
+        extraInfo3.textContent = model[8];
         const extraInfo4 = document.createElement("td");
-        extraInfo4.textContent = model[8];
+        extraInfo4.textContent = model[11];
         const selectButtonCell = document.createElement("td");
         const selectButton = document.createElement("button");
         selectButton.textContent = "Select Model";
         selectButton.dataset.modelName = model[0];
-        
-        selectButton.addEventListener("click", function() {
-            // Remove highlighting from previously selected row
-            const previouslySelectedRow = document.querySelector('.selected-row');
-            if (previouslySelectedRow) {
-                previouslySelectedRow.classList.remove('selected-row');
-            }
-    
-            // Highlight the current row
-            row.classList.add('selected-row');
-    
-            const modelName = this.dataset.modelName;
-            const model_name = modelName.match(/model(\d+)\./);
-            job.model_id = model_name[1];
-            console.log("model_id added");
-            job.classes = model[5][2];
-            console.log("classes added");
-            console.log("job: ", job);
+
+        selectButton.addEventListener("click", function () {
+          // Remove highlighting from previously selected row
+          const previouslySelectedRow = document.querySelector('.selected-row');
+          if (previouslySelectedRow) {
+            previouslySelectedRow.classList.remove('selected-row');
+          }
+
+          // Highlight the current row
+          row.classList.add('selected-row');
+
+          const modelName = this.dataset.modelName;
+          const model_name = modelName.match(/model(\d+)\./);
+          job.model_id = model_name[1];
+          console.log("model_id added");
+          job.classes = model[5][2];
+          console.log("classes added");
+          console.log("job: ", job);
         });
-    
+
+
         selectButtonCell.appendChild(selectButton);
         row.appendChild(modelName);
         row.appendChild(extraInfo1);
@@ -653,9 +718,18 @@ function useTrainedModel() {
         row.appendChild(extraInfo4);
         row.appendChild(selectButtonCell);
         tableBody.appendChild(row);
-    });
+      });
       table.appendChild(tableBody);
       modelContainer.appendChild(table);
+      const lastRow = table.querySelector('tbody tr:last-child');
+      if (lastRow) {
+        lastRow.classList.add('selected-row');
+        // Optionally, trigger the click event on the "Select Model" button for the last row
+        const selectButton = lastRow.querySelector('button');
+        if (selectButton) {
+          selectButton.click();
+        }
+      }
     })
     .catch(error => {
       // Handle errors during the fetch operation

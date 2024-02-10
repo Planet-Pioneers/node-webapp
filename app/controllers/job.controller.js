@@ -16,7 +16,8 @@ exports.create = async (req, res) => {
   let calculation = req.body.calculation;
   let coordinates = req.body.coordinates;
   resolution = req.body.resolution;
-  console.log(coordinates)
+  trainingdata = req.body.trainingdata;
+  console.log(coordinates);
 
 
   function switchCoordinatesOrder(coordinates) {
@@ -46,11 +47,11 @@ exports.create = async (req, res) => {
   console.log("trying to connect to openeocubes on http://r-backend:8000")
   //sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINER ID 
   //and then use that ip adress instead of localhost!
-   //const con = await OpenEO.connect("http://127.0.0.1:8000")
-  const con = await OpenEO.connect("http://r-backend:8000")
+  const con = await OpenEO.connect("http://r-backend:8000/");
+  //const con = await OpenEO.connect("http://r-backend:8000")
 
- 
-  
+
+
   // Connect to the back-end when deployed on AWS
   //const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
 
@@ -72,23 +73,23 @@ exports.create = async (req, res) => {
     console.log("model selected:")
     console.log(req.body.model_id);
     model_id = req.body.model_id;
-      var builder = await con.buildProcess();
-      var datacube_init2 = builder.load_collection(
-        "sentinel-s2-l2a-cogs",
-        cordjson,
-        ["2018-06-01", "2018-06-30"],
-        undefined,
-        resolution
-      );
-      datacube_filtered2 = builder.filter_bands(datacube_init2, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
-      datacube_agg2 = builder.aggregate_temporal_period(datacube_filtered2, "month", "median")
-      datacube_ndvi2 = builder.ndvi(datacube_agg2, "B08", "B04", true)
-      test = builder.classify(datacube_ndvi2, model_id)
-    
-   
-      result = builder.save_result(test, "GTiff");
-      await con.downloadResult(test, "./public/results/prediction.tif");
-      console.log("prediction done!")
+    var builder = await con.buildProcess();
+    var datacube_init2 = builder.load_collection(
+      "sentinel-s2-l2a-cogs",
+      cordjson,
+      ["2018-06-01", "2018-06-30"],
+      undefined,
+      resolution
+    );
+    datacube_filtered2 = builder.filter_bands(datacube_init2, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
+    datacube_agg2 = builder.aggregate_temporal_period(datacube_filtered2, "month", "median")
+    datacube_ndvi2 = builder.ndvi(datacube_agg2, "B08", "B04", true)
+    test = builder.classify(datacube_ndvi2, model_id)
+
+
+    result = builder.save_result(test, "GTiff");
+    await con.downloadResult(test, "./public/results/prediction.tif");
+    console.log("prediction done!")
 
 
 
@@ -99,7 +100,7 @@ exports.create = async (req, res) => {
     var datacube_init = builder.load_collection(
       "sentinel-s2-l2a-cogs",
       cordjson,
-      ["2018-06-01", "2018-06-30"],
+      ["2020-06-01", "2020-06-30"],
       undefined,
       resolution
     );
@@ -116,46 +117,84 @@ exports.create = async (req, res) => {
 
   } else if (calculation == "model") {
     //create uid for model
-    const uid = Date.now().toString() + Math.floor(Math.random() * 1000000).toString();   
+    const uid = Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
     console.log(uid)
-    
-    //replace this with a api call to new route /training where trainingdata will be stored in mongodb.
+
     //then get minmax bounds of the trainingdata here. 
-    const geojsonFilePath = "./public/results/trainingsites.geojson";
-    let geojsonContent;
-    try {
-      geojsonContent = fs.readFileSync(geojsonFilePath, 'utf8');
-      geojsonString = JSON.stringify(geojsonContent)
-    } catch (err) {
+    function getBounds(geojson) {
+      let crstring = geojson.crs.properties.name;
+      const concatenatedNumber = Number((crstring.match(/\d+/g) || []).join(''));
 
-      console.error('Error reading GeoJSON file:', err);
+      if (!geojson || !geojson.features || geojson.features.length === 0) {
+        // Return a default or error value if the GeoJSON is empty or invalid
+        return { west: 0, south: 0, east: 0, north: 0, crs: 0 };
+      }
+
+      // Initialize bounding box with values from the first feature
+      let bbox = {
+        west: Infinity,
+        south: Infinity,
+        east: -Infinity,
+        north: -Infinity,
+        crs: concatenatedNumber, // Change this to the appropriate CRS code
+      };
+
+      // Iterate through features to find the bounding box
+      geojson.features.forEach((feature) => {
+        if (feature.geometry && feature.geometry.coordinates) {
+          feature.geometry.coordinates.forEach((coordinate) => {
+            coordinate.forEach((point) => {
+              bbox.west = Math.min(bbox.west, point[0]);
+              bbox.south = Math.min(bbox.south, point[1]);
+              bbox.east = Math.max(bbox.east, point[0]);
+              bbox.north = Math.max(bbox.north, point[1]);
+            });
+          });
+        }
+      });
+
+      return bbox;
     }
-      var builder = await con.buildProcess();
-      var datacube_init = builder.load_collection(
-        "sentinel-s2-l2a-cogs",
-
-        {
-          west: 837596.9559,
-          south: 6785525.2027,
-          east: 857222.1630,
-          north: 6798404.8420,
-          crs: 3857
-        },
-        ["2020-06-01", "2020-06-30"],
-        undefined,
-        150
-      );
-      datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
-      datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
-      datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04", true)
-      //console.log(geojsonContent)
-      model = builder.train_model(datacube_ndvi, geojsonContent, uid)
-      //classification = builder.classify(datacube_ndvi, model)
+    let bbox = getBounds(trainingdata)
+    console.log(bbox);
+    trainingdata = JSON.stringify(req.body.trainingdata);
 
 
-      result = builder.save_result(model, "RDS");
-      await con.downloadResult(model, "./public/results/model.rds");
-      console.log("model trained!")
+
+    var builder = await con.buildProcess();
+    var datacube_init = builder.load_collection(
+      "sentinel-s2-l2a-cogs",
+      bbox,
+
+      /* {
+        west: 829265.3071,
+        south: 6726936.2588,
+        east: 851279.1817,
+        north: 6743733.2687,
+        crs: 3857
+      },
+     {
+        west: 837596.9559,
+        south: 6785525.2027,
+        east: 857222.1630,
+        north: 6798404.8420,
+        crs: 3857
+      },*/
+      ["2020-06-01", "2020-06-30"],
+      undefined,
+      resolution
+    );
+    datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
+    datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
+    datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04", true)
+    //console.log(geojsonContent)
+    model = builder.train_model(datacube_ndvi, trainingdata, uid)
+    //classification = builder.classify(datacube_ndvi, model)
+
+
+    result = builder.save_result(model, "RDS");
+    await con.downloadResult(model, "./public/results/model.rds");
+    console.log("model trained!")
 
 
   }
