@@ -131,7 +131,7 @@
  <!-- Calculation Section -->
      <h2 class="mt-4">Berechnung starten</h2>
      <div class="mb-3">
-         <button class="btn btn-primary" onclick="startDownload('NDVI')">Berechnen</button>
+         <button class="btn btn-primary" onclick="startDownload('Classification')">Berechnen</button>
          <button class="btn btn-primary" onclick="startDownload('composite')">Wolkenfreies Komposit berechnen</button>
      </div>
  </div>
@@ -139,9 +139,9 @@
  <!-- Download Section -->
  <div id="download-section" style="display: none;">
      <h2 class="mt-4">Download</h2>
-     <button class="btn btn-primary" onclick="downloadFile('model.rds')">Model downloaden</button>
-     <button class="btn btn-primary" onclick="downloadFile('result.tif')">Klassifikation downloaden</button>
-     <button class="btn btn-primary" onclick="downloadFile('composite.tif')">Wolkenfreies Komposit downloaden</button>
+     <button id="model-download-button"class="btn btn-primary" onclick="downloadFile('model.rds')"hidden>Model downloaden</button>
+     <button id="classification-download-button"class="btn btn-primary" onclick="downloadFile('result.tif')"hidden>Klassifikation downloaden</button>
+     <button id="composite-download-button"class="btn btn-primary" onclick="downloadFile('composite.tif')" hidden>Wolkenfreies Komposit downloaden</button>
 
  </div>
 </div>

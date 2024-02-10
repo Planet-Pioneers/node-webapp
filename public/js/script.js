@@ -186,38 +186,38 @@ async function uploadTrainingData() {
       // Extract the crs
       console.log(concatenatedNumber);
       let crs = `EPSG:${concatenatedNumber}`;
-      console.log("before:" ,geojson);
+      console.log("before:", geojson);
 
       // Function to alter coordinates (modify this according to your requirements)
       function convertCoordinates(coordinates) {
-          return coordinates.map(coord => {
-              // Convert coordinates to EPSG:4326
-              const convertedCoord = proj4(crs, 'EPSG:4326', coord);
-              return convertedCoord;
-          });
+        return coordinates.map(coord => {
+          // Convert coordinates to EPSG:4326
+          const convertedCoord = proj4(crs, 'EPSG:4326', coord);
+          return convertedCoord;
+        });
       }
-      
+
       // Create a new GeoJSON object with modified coordinates
       const modifiedGeojson = {
-          type: 'FeatureCollection',
-          features: geojson.features.map(feature => {
-              const geometry = feature.geometry;
-      
-              // Check if the geometry is a Polygon
-              if (geometry.type === 'Polygon') {
-                  // Clone the original feature and modify the coordinates
-                  const modifiedFeature = JSON.parse(JSON.stringify(feature));
-                  modifiedFeature.geometry.coordinates[0] = convertCoordinates(geometry.coordinates[0]);
-      
-                  return modifiedFeature;
-              } else {
-                  return feature;
-              }
-          })
+        type: 'FeatureCollection',
+        features: geojson.features.map(feature => {
+          const geometry = feature.geometry;
+
+          // Check if the geometry is a Polygon
+          if (geometry.type === 'Polygon') {
+            // Clone the original feature and modify the coordinates
+            const modifiedFeature = JSON.parse(JSON.stringify(feature));
+            modifiedFeature.geometry.coordinates[0] = convertCoordinates(geometry.coordinates[0]);
+
+            return modifiedFeature;
+          } else {
+            return feature;
+          }
+        })
       };
-      
-      console.log("after:" , modifiedGeojson);
-      
+
+      console.log("after:", modifiedGeojson);
+
       // Add the modified GeoJSON to the Leaflet map
       const geoJsonLayer = L.geoJSON(modifiedGeojson).addTo(map);
       // Hier adde ich die trainingspolygone einfach zu all layers das ist zwar dumm aber mein Kopf funktioniert nichtmehr
@@ -475,18 +475,18 @@ async function startDownload(calc) {
     calculation = responseData.calculation; // This will log the response data to the console
     //Anzahl der classes wird aus dem job ausgelesen. Im moment noch in UseTrainedModel, später dann über die Auswahl von model
     classes = job.classes;
-    console.log("selected Model has ", classes, " classes")
+    console.log("selected Model has ", classes)
     // classes = responseData.classes
     //TODO: Existiert noch nicht aber diese Anzahl wäre dann wie viele Klassen es gibt. Daraufhin muss die Legende skaliert werden
   } catch (error) {
     console.error(error); // Handle errors here
   }
-  if (calculation == "NDVI") {
+  if (calculation == "Classification") {
     //Initiate Legend
     L.Control.Legend = L.Control.extend({
       onAdd: function (map) {
         //create_legend Funktion unten wird aufgerufen
-        return create_legend();
+        return create_legend(classes);
       }
     });
     L.control.Legend = function (opts) {
@@ -532,7 +532,8 @@ async function startDownload(calc) {
 
         });
       });
-    alert("Classification done! Please view it on the map")
+    alert("Classification done! Please view it on the map or download it below")
+    document.getElementById('classification-download-button').removeAttribute('hidden');
   } else if (calculation == "composite") {
     var url_to_geotiff_file = "../results/composite.tif"
 
@@ -586,15 +587,24 @@ async function startDownload(calc) {
 
         });
       });
-    alert("Composite calculation done! Please view it on the map")
+    alert("Composite calculation done! Please view it on the map or download it below")
+    document.getElementById('composite-download-button').removeAttribute('hidden');
   } else if (calculation == "model") {
     alert("Model calculation done!")
+    document.getElementById('model-download-button').removeAttribute('hidden');
     useTrainedModel();
   }
 
 }
 
-function create_legend() {
+function create_legend(classes) {
+
+  // Use regular expression to find all substrings within single quotes
+  const matches = classes.match(/'([^']+)'/g);
+
+  // Remove single quotes from each match
+  const classnames = matches.map(match => match.replace(/'/g, ''));
+
   //TODO: Größe vom Canvas auf anzahl der Klassen anpassen?
   let cs = L.DomUtil.create('canvas');
   const legend_plane_width = 125;
@@ -611,7 +621,10 @@ function create_legend() {
   if (cs.getContext) {
     let ctx = cs.getContext('2d');
     //TODO: Chroma scale an chroma scale oben anpassen
-    let scl = chroma.scale(['#F4A460', '#008000', '#8B0000', '#0000FF', '#228B22', '#90EE90', '#FF0000']).classes(7);
+    let allchromas = ['#F4A460', '#008000', '#8B0000', '#0000FF', '#228B22', '#90EE90', '#FF0000']
+    let chromas = allchromas.slice(0,classnames.length)
+    console.log(chromas)
+    let scl = chroma.scale(chromas).classes(chromas.length);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, legend_plane_width, legend_plane_height);
     //Ich check nicht so genau was hier passiert warum ist div_num 100? aber es müssen jedenfalls die Rechtecke mit den Farben auf das große Rechteck skaliert werden
@@ -631,16 +644,13 @@ function create_legend() {
     ctx.textAlign = 'left';
     const left_pos_2nd = 45;
     //TODO Label ändern zu labels aus dem Model (das es noch nicht gibt hier)
-    getLandCoverLabel = ["Fallow field", "Grassland", "Industrial", "Inland water", "Mixed forest", "Planted field", "Urban"]
     //TODO: Hier die Position vom Text anpassen. Warum nicht die gleiche Skalierung nehmen wie bei den Rechtecken?
     //Weil das aus irgend einem grund nicht klappt
-    ctx.fillText("Urban", left_pos_2nd, top_pos);
-    ctx.fillText("Planted field", left_pos_2nd, top_pos + 30);
-    ctx.fillText("Mixed forest", left_pos_2nd, top_pos + 63);
-    ctx.fillText("Inland water", left_pos_2nd, top_pos + 90);
-    ctx.fillText("Industrial", left_pos_2nd, top_pos + 120);
-    ctx.fillText("Grassland", left_pos_2nd - 1, top_pos + 150);
-    ctx.fillText("UrbanFallow field", left_pos_2nd - 2, top_pos + 180);
+    for (let i = 0; i < classnames.length; i++) {
+      const label = classnames[classnames.length - i - 1]; // Remove leading digits
+      const top_pos = 45 + i * 210/classnames.length;
+      ctx.fillText(label, left_pos_2nd, top_pos);
+    }
   }
   return cs;
 }
@@ -769,7 +779,7 @@ function useTrainedModel() {
           const model_name = modelName.match(/model(\d+)\./);
           job.model_id = model_name[1];
           console.log("model_id added");
-          job.classes = model[5][2];
+          job.classes = model[8];
           console.log("classes added");
           console.log("job: ", job);
         });
@@ -789,7 +799,7 @@ function useTrainedModel() {
       const lastRow = table.querySelector('tbody tr:last-child');
       if (lastRow) {
         lastRow.classList.add('selected-row');
-        // Optionally, trigger the click event on the "Select Model" button for the last row
+        //trigger the click event on the "Select Model" button for the last row
         const selectButton = lastRow.querySelector('button');
         if (selectButton) {
           selectButton.click();

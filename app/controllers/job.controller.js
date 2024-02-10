@@ -47,13 +47,13 @@ exports.create = async (req, res) => {
   console.log("trying to connect to openeocubes on http://r-backend:8000")
   //sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINER ID 
   //and then use that ip adress instead of localhost!
-  const con = await OpenEO.connect("http://r-backend:8000/");
+  //const con = await OpenEO.connect("http://r-backend:8000/");
   //const con = await OpenEO.connect("http://r-backend:8000")
 
 
 
   // Connect to the back-end when deployed on AWS
-  //const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
+  const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
 
   // Basic login with default params
   await con.authenticateBasic("user", "password");
@@ -69,7 +69,7 @@ exports.create = async (req, res) => {
 
 
 
-  if (calculation == "NDVI") {
+  if (calculation == "Classification") {
     console.log("model selected:")
     console.log(req.body.model_id);
     model_id = req.body.model_id;

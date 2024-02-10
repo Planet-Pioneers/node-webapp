@@ -6,3 +6,5 @@ composite.tif
 composite.tif.aux.xml
 model.rds
 prediction.tif
+prediction.tif.aux.xml
+trainingsites_luenen.geojson

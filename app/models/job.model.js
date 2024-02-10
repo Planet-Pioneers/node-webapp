@@ -6,7 +6,7 @@ module.exports = mongoose => {
   const jobSchema = new mongoose.Schema({
     calculation:{
       type: String,
-      enum: ["NDVI", "composite", "model"],
+      enum: ["Classification", "composite", "model"],
       required: true
     },
     date: {
