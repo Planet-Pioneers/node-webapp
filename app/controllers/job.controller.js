@@ -44,11 +44,11 @@ exports.create = async (req, res) => {
   console.log(cordjson);
 
 
-  console.log("trying to connect to openeocubes on http://r-backend:8000")
+  console.log("trying to connect to openeocubes on http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000")
   //sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINER ID 
   //and then use that ip adress instead of localhost!
   //const con = await OpenEO.connect("http://r-backend:8000/");
-  //const con = await OpenEO.connect("http://r-backend:8000")
+  //const con = await OpenEO.connect("http://localhost:8000/")
 
 
 
@@ -88,7 +88,13 @@ exports.create = async (req, res) => {
 
 
     result = builder.save_result(test, "GTiff");
-    await con.downloadResult(test, "./public/results/prediction.tif");
+    const filepath = "./public/results/prediction.tif"
+    fs.unlink(filepath, async (err) => {
+      if (err) {
+        console.error('Error deleting the file:', err);
+      } 
+    });
+    await con.downloadResult(test, filepath);
     console.log("prediction done!")
 
 
@@ -111,7 +117,13 @@ exports.create = async (req, res) => {
       blue: "B03",
       greeen: "B04"
     });
-    await con.downloadResult(datacube_agg, "./public/results/composite.tif");
+    const filepath = "./public/results/composite.tif"
+    fs.unlink(filepath, async (err) => {
+      if (err) {
+        console.error('Error deleting the file:', err);
+      } 
+    });
+    await con.downloadResult(datacube_agg, filepath);
     console.log("done!")
 
 
@@ -152,7 +164,10 @@ exports.create = async (req, res) => {
           });
         }
       });
-
+      //Check if the bbox is too large
+      const deltax = (bbox.east - bbox.west) ;
+      const deltay = (bbox.north - bbox.south)
+      console.log("deltax: ", deltax, " deltay: ", deltay)
       return bbox;
     }
     let bbox = getBounds(trainingdata)
@@ -193,7 +208,13 @@ exports.create = async (req, res) => {
 
 
     result = builder.save_result(model, "RDS");
-    await con.downloadResult(model, "./public/results/model.rds");
+    const filepath = "./public/results/model.rds"
+    fs.unlink(filepath, async (err) => {
+      if (err) {
+        console.error('Error deleting the file:', err);
+      } 
+    });
+    await con.downloadResult(model, filepath);
     console.log("model trained!")
 
 

@@ -137,7 +137,7 @@ async function is_valid_geojson(geojson) {
     return false;
   }
   if (!geojson.crs) {
-    alert("needs a crs like : crs: { type: name, properties: { name: urn:ogc:def:crs:EPSG::32632 } }")
+    alert("needs a crs like : crs: { type: name, properties: { name: urn:ogc:def:crs:EPSG::32632 } } \n supported crs are : EPSG::32632, EPSG:4326, EPSG:4269, EPSG:3857")
     return false;
   }
   // Check each feature in 'features'
@@ -151,14 +151,12 @@ async function is_valid_geojson(geojson) {
     if (!feature.type || !feature.properties || !feature.geometry) {
       return false;
     }
-    // Check properties for FID, Label, and ClassID
+    // Check properties Label
     const properties = feature.properties;
     if (
-      typeof properties.FID !== 'number' ||
-      typeof properties.Label !== 'string' ||
-      typeof properties.ClassID !== 'number'
+      typeof properties.Label !== 'string'
     ) {
-      alert("please provide FID, Label and ClassID under properties")
+      alert("please a Label for each feature under properties")
       return false;
     }
 
@@ -176,11 +174,13 @@ async function uploadTrainingData() {
   const valid = await is_valid_geojson(geojson);
   console.log(valid)
   if (valid) {
+    //upload normal trainingdata
     let crstring = geojson.crs.properties.name;
     const concatenatedNumber = Number((crstring.match(/\d+/g) || []).join(''));
 
     // Check if a match is found
     if (concatenatedNumber) {
+      //Add some common crs codes here. That seems like a dumb way to do that tho
       proj4.defs("EPSG:32632", "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs +type=crs");
 
       // Extract the crs
@@ -189,15 +189,15 @@ async function uploadTrainingData() {
       console.log("before:", geojson);
 
       // Function to alter coordinates (modify this according to your requirements)
-      function convertCoordinates(coordinates) {
+      function convertCoordinates(coordinates, resultcrs) {
         return coordinates.map(coord => {
           // Convert coordinates to EPSG:4326
-          const convertedCoord = proj4(crs, 'EPSG:4326', coord);
+          const convertedCoord = proj4(crs, resultcrs, coord);
           return convertedCoord;
         });
       }
 
-      // Create a new GeoJSON object with modified coordinates
+      // Create a new GeoJSON object with modified coordinates to display on the leaflet map.
       const modifiedGeojson = {
         type: 'FeatureCollection',
         features: geojson.features.map(feature => {
@@ -207,7 +207,7 @@ async function uploadTrainingData() {
           if (geometry.type === 'Polygon') {
             // Clone the original feature and modify the coordinates
             const modifiedFeature = JSON.parse(JSON.stringify(feature));
-            modifiedFeature.geometry.coordinates[0] = convertCoordinates(geometry.coordinates[0]);
+            modifiedFeature.geometry.coordinates[0] = convertCoordinates(geometry.coordinates[0],'EPSG:4326');
 
             return modifiedFeature;
           } else {
@@ -215,9 +215,41 @@ async function uploadTrainingData() {
           }
         })
       };
-
       console.log("after:", modifiedGeojson);
 
+
+
+      //create a second modified geojson to push to the backend
+      let i = 1;
+      const labelToClassIdMap = {};
+      let classIdCounter = 1; 
+      const modifiedGeojson2 = {
+        type: 'FeatureCollection',
+        crs: { "type": "name", "properties": { "name": "EPSG:3857" } },
+        features: geojson.features.map(feature => {
+
+          const modifiedFeature = {
+            type: "Feature",
+            properties: {},
+            geometry: feature.geometry
+          };
+          modifiedFeature.geometry.coordinates[0] = convertCoordinates(feature.geometry.coordinates[0],'EPSG:3857');
+          modifiedFeature.properties.FID = i++;
+          let label = feature.properties.Label
+          let classId = labelToClassIdMap[label];
+          if (!classId) {
+            // If not, assign a new unique ClassId
+            classId = classIdCounter++;
+            labelToClassIdMap[label] = classId;
+          }
+          modifiedFeature.properties.ClassId = classId;
+          modifiedFeature.properties.Label = `${classId}${label.replace(/\d/g, '')}`;
+          return modifiedFeature;
+
+        })
+      };
+      job.trainingdata = modifiedGeojson2;
+      console.log("after:", modifiedGeojson2);
       // Add the modified GeoJSON to the Leaflet map
       const geoJsonLayer = L.geoJSON(modifiedGeojson).addTo(map);
       // Hier adde ich die trainingspolygone einfach zu all layers das ist zwar dumm aber mein Kopf funktioniert nichtmehr
@@ -235,6 +267,9 @@ async function uploadTrainingData() {
       console.log("No EPSG:: code found in the string.");
     }
 
+  }else{
+    console.log("jobtrainingdata = null")
+    job.trainingdata = NULL;
   }
 }
 
@@ -498,8 +533,8 @@ async function startDownload(calc) {
     // Chroma color scale definition
     //TODO: Welche Farben nimmt man wenn man nicht weiß wie viele Klassen es gibt? Domain muss auch dynamisch gemacht werden
     const scale = chroma.scale([
-      '#F4A460', '#008000', '#8B0000', '#0000FF', '#228B22', '#90EE90', '#FF0000'
-    ]).domain([1, 2, 3, 4, 5, 6, 7]);
+      '#90EE90', '#0000FF', '#00FF00', '#8B0000', '#FF0000', '#F4A460', '#007500', '#89cff0', '#aa00bb','#fe4300'
+    ]).domain([1, 2, 3, 4, 5, 6, 7,8,9,10]);
 
 
     fetch(url_to_geotiff_file)
@@ -621,8 +656,8 @@ function create_legend(classes) {
   if (cs.getContext) {
     let ctx = cs.getContext('2d');
     //TODO: Chroma scale an chroma scale oben anpassen
-    let allchromas = ['#F4A460', '#008000', '#8B0000', '#0000FF', '#228B22', '#90EE90', '#FF0000']
-    let chromas = allchromas.slice(0,classnames.length)
+    let allchromas = [ '#90EE90', '#0000FF', '#00FF00', '#8B0000', '#FF0000', '#F4A460', '#007500', '#89cff0', '#aa00bb','#fe4300']
+    let chromas = allchromas.slice(0, classnames.length)
     console.log(chromas)
     let scl = chroma.scale(chromas).classes(chromas.length);
     ctx.fillStyle = '#ffffff';
@@ -648,7 +683,7 @@ function create_legend(classes) {
     //Weil das aus irgend einem grund nicht klappt
     for (let i = 0; i < classnames.length; i++) {
       const label = classnames[classnames.length - i - 1]; // Remove leading digits
-      const top_pos = 45 + i * 210/classnames.length;
+      const top_pos = 45 + i * 210 / classnames.length;
       ctx.fillText(label, left_pos_2nd, top_pos);
     }
   }
