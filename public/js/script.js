@@ -739,8 +739,8 @@ function trainManually() {
 
 }
 function useTrainedModel() {
-  const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
-  //const apiUrl = "http://localhost:8000/models";
+  //const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
+  const apiUrl = "http://localhost:8000/models";
   console.log("url = ", apiUrl)
 
   // Container, in den wir die Modelle einfügen werden

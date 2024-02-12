@@ -11,12 +11,14 @@ services:
     volumes:
       - db:/data/db
   r-backend:
-    image: simonpepe/r-backend
-    container_name: r-backend
+    build: ./openeocubes
+    container_name: openeocubes
     ports:
       - "8000:8000"
+    restart: always
     environment:
-      - AWSHOST=ec2-54-201-136-219.us-west-2.compute.amazonaws.com
+      - TZ=Etc/UTC
+      - DEBIAN_FRONTEND=noninteractive
   app:
     depends_on:
       - mongodb
