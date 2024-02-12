@@ -12,7 +12,7 @@ services:
       - db:/data/db
   r-backend:
     build: ./openeocubes
-    container_name: openeocubes
+    container_name: r-backend
     ports:
       - "8000:8000"
     restart: always
@@ -31,6 +31,7 @@ services:
       - DB_HOST=mongodb
       - DB_NAME=$MONGODB_DATABASE
       - DB_PORT=$MONGODB_DOCKER_PORT
+      - OPENEOCUBES_URI=http://r-backend:8000
     stdin_open: true
     tty: true
 

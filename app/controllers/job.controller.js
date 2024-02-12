@@ -48,13 +48,15 @@ exports.create = async (req, res) => {
   //sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINER ID 
   //and then use that ip adress instead of localhost!
   //const con = await OpenEO.connect("http://r-backend:8000/");
-  const con = await OpenEO.connect("http://openeocubes:8000/")
+  const openeocubesUri = process.env.OPENEOCUBES_URI;
+  console.log("connecting to: " , openeocubesUri)
+  //const con = await OpenEO.connect(openeocubesUri)
   //const con = await OpenEO.connect("http://r-backend:8000/")
 
   console.log("hello???")
 
   // Connect to the back-end when deployed on AWS
-  //const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
+  const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
 
   // Basic login with default params
   await con.authenticateBasic("user", "password");

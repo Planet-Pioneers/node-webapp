@@ -505,7 +505,24 @@ async function startDownload(calc) {
   console.log(obj)
   let calculation;
   try {
+    if(calc == 'Classification'){
+      if(job.model_id == null){
+        alert("please select a model first")
+        return;
+      }
+    }
+    if(calc == 'model'){
+      document.getElementById('loading-spinner-model').style.display = 'block';
+    }else{
+      document.getElementById('loading-spinner').style.display = 'block';
+    }
     const responseData = await api_call('jobs', 'POST', "/", obj);
+    if(calc == 'model'){
+      document.getElementById('loading-spinner-model').style.display = 'none';
+    }else{
+      document.getElementById('loading-spinner').style.display = 'none';
+    }
+    
     console.log("response: ", responseData)
     calculation = responseData.calculation; // This will log the response data to the console
     //Anzahl der classes wird aus dem job ausgelesen. Im moment noch in UseTrainedModel, später dann über die Auswahl von model
@@ -739,8 +756,8 @@ function trainManually() {
 
 }
 function useTrainedModel() {
-  //const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
-  const apiUrl = "http://localhost:8000/models";
+  const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
+  //const apiUrl = "http://r-backend:8000/models";
   console.log("url = ", apiUrl)
 
   // Container, in den wir die Modelle einfügen werden
