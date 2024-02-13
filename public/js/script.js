@@ -668,7 +668,7 @@ function create_legend(classes) {
 
   // Remove single quotes and leading number from the class names.
   const classnames = matches.map(match => match.replace(/'/g, ''));
-  classnames = array.map(classnames => classnames.replace(/\d/g, ''));
+  classnames = classnames.map(classnames => classnames.replace(/\d/g, ''));
 
   let cs = L.DomUtil.create('canvas');
   const legend_plane_width = 125;
