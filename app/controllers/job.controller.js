@@ -17,8 +17,15 @@ exports.create = async (req, res) => {
   let coordinates = req.body.coordinates;
   resolution = req.body.resolution;
   trainingdata = req.body.trainingdata;
+  date1 = req.body.date;
+  
   console.log(coordinates);
-
+  console.log(date1);
+  let date = new Date(date1)
+  var date2 = new Date(date.setMonth(date.getMonth()+1));
+  let date2string = date2.toISOString();
+  date2 = date2string.split("T")[0];
+  console.log(date2)
 
   function switchCoordinatesOrder(coordinates) {
     return coordinates.map(coord => [coord[1], coord[0]]);
@@ -49,14 +56,13 @@ exports.create = async (req, res) => {
   //and then use that ip adress instead of localhost!
   //const con = await OpenEO.connect("http://r-backend:8000/");
   const openeocubesUri = process.env.OPENEOCUBES_URI;
-  console.log("connecting to: " , openeocubesUri)
-  //const con = await OpenEO.connect(openeocubesUri)
+  console.log("connecting to: ", "http://r-backend:8000")
+  const con = await OpenEO.connect("http://r-backend:8000")
   //const con = await OpenEO.connect("http://r-backend:8000/")
 
-  console.log("hello???")
 
   // Connect to the back-end when deployed on AWS
-  const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
+  //const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
 
   // Basic login with default params
   await con.authenticateBasic("user", "password");
@@ -64,12 +70,12 @@ exports.create = async (req, res) => {
   var info = con.capabilities();
   console.log("API Version: ", info.apiVersion());
   console.log("Description: ", info.description());
-  console.log("Available Processes:");
-  var response = await con.listProcesses();
-  response.processes.forEach(process => {
-    console.log(`${process.id}: ${process.summary}`);
-  });
-
+  /*  console.log("Available Processes:");
+     var response = await con.listProcesses();
+    response.processes.forEach(process => {
+      console.log(`${process.id}: ${process.summary}`);
+    });
+   */
 
 
   if (calculation == "Classification") {
@@ -80,7 +86,7 @@ exports.create = async (req, res) => {
     var datacube_init2 = builder.load_collection(
       "sentinel-s2-l2a-cogs",
       cordjson,
-      ["2018-06-01", "2018-06-30"],
+      [date1, date2],
       undefined,
       resolution
     );
@@ -95,7 +101,7 @@ exports.create = async (req, res) => {
     fs.unlink(filepath, async (err) => {
       if (err) {
         console.error('Error deleting the file:', err);
-      } 
+      }
     });
     await con.downloadResult(test, filepath);
     console.log("prediction done!")
@@ -109,7 +115,7 @@ exports.create = async (req, res) => {
     var datacube_init = builder.load_collection(
       "sentinel-s2-l2a-cogs",
       cordjson,
-      ["2020-06-01", "2020-06-30"],
+      [date1, date2],
       undefined,
       resolution
     );
@@ -124,7 +130,7 @@ exports.create = async (req, res) => {
     fs.unlink(filepath, async (err) => {
       if (err) {
         console.error('Error deleting the file:', err);
-      } 
+      }
     });
     await con.downloadResult(datacube_agg, filepath);
     console.log("done!")
@@ -168,7 +174,7 @@ exports.create = async (req, res) => {
         }
       });
       //Check if the bbox is too large
-      const deltax = (bbox.east - bbox.west) ;
+      const deltax = (bbox.east - bbox.west);
       const deltay = (bbox.north - bbox.south)
       console.log("deltax: ", deltax, " deltay: ", deltay)
       return bbox;
@@ -198,7 +204,7 @@ exports.create = async (req, res) => {
         north: 6798404.8420,
         crs: 3857
       },*/
-      ["2020-06-01", "2020-06-30"],
+      [date1, date2],
       undefined,
       resolution
     );
@@ -215,7 +221,7 @@ exports.create = async (req, res) => {
     fs.unlink(filepath, async (err) => {
       if (err) {
         console.error('Error deleting the file:', err);
-      } 
+      }
     });
     await con.downloadResult(model, filepath);
     console.log("model trained!")

@@ -15,12 +15,15 @@ SessionConfig = function(api.port = NULL, host = NULL, aws.ipv4 = NULL) {
 
   if (host == "0.0.0.0" && is.null(aws.ipv4)) {
     base = paste("http://", "localhost:", api.port,  sep = "")
+    message("base1: " , base)
   }
   else if(host == "0.0.0.0" && !is.null(aws.ipv4)){
     base = paste("http://", aws.ipv4, ":", api.port,  sep = "")
+     message("base2: " , base)
   }
   else {
     base = paste("http://",host, ":", api.port,  sep = "")
+     message("base3: " , base)
   }
 
   default = list(

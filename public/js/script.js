@@ -207,7 +207,7 @@ async function uploadTrainingData() {
           if (geometry.type === 'Polygon') {
             // Clone the original feature and modify the coordinates
             const modifiedFeature = JSON.parse(JSON.stringify(feature));
-            modifiedFeature.geometry.coordinates[0] = convertCoordinates(geometry.coordinates[0],'EPSG:4326');
+            modifiedFeature.geometry.coordinates[0] = convertCoordinates(geometry.coordinates[0], 'EPSG:4326');
 
             return modifiedFeature;
           } else {
@@ -222,7 +222,7 @@ async function uploadTrainingData() {
       //create a second modified geojson to push to the backend
       let i = 1;
       const labelToClassIdMap = {};
-      let classIdCounter = 1; 
+      let classIdCounter = 1;
       const modifiedGeojson2 = {
         type: 'FeatureCollection',
         crs: { "type": "name", "properties": { "name": "EPSG:3857" } },
@@ -233,7 +233,7 @@ async function uploadTrainingData() {
             properties: {},
             geometry: feature.geometry
           };
-          modifiedFeature.geometry.coordinates[0] = convertCoordinates(feature.geometry.coordinates[0],'EPSG:3857');
+          modifiedFeature.geometry.coordinates[0] = convertCoordinates(feature.geometry.coordinates[0], 'EPSG:3857');
           modifiedFeature.properties.FID = i++;
           let label = feature.properties.Label
           let classId = labelToClassIdMap[label];
@@ -267,7 +267,7 @@ async function uploadTrainingData() {
       console.log("No EPSG:: code found in the string.");
     }
 
-  }else{
+  } else {
     console.log("jobtrainingdata = null")
     job.trainingdata = NULL;
   }
@@ -304,10 +304,8 @@ function drawPopup(layer) {
 
       // Open a popup with date input fields and layer coordinates
       layer.bindPopup(`
-        <label for="start-date">Start Date:</label>
+        <label for="start-date">Date:</label>
         <input type="date" id="start-date"><br>
-        <label for="end-date">End Date:</label>
-        <input type="date" id="end-date"><br>
         <p>Layer Coordinates: ${coordinatesString}</p>
         <button onclick="saveTime()">Save Time</button>
         <button onclick="deleteLayer()">Delete</button> <!-- Add delete button -->
@@ -319,28 +317,24 @@ function drawPopup(layer) {
 // Function to save time range
 function saveTime() {
   const startDateInput = document.getElementById('start-date');
-  const endDateInput = document.getElementById('end-date');
 
   const startDate = startDateInput.value;
-  const endDate = endDateInput.value;
+  console.log(startDate)
 
   // Check if both start and end dates are selected
-  if (startDate && endDate) {
+  if (startDate) {
     // Parse the selected dates
-    const startTimestamp = new Date(startDate).getTime();
-    const endTimestamp = new Date(endDate).getTime();
+    const startTimestamp = new Date(startDate);
+    console.log(startTimestamp)
+  
 
-    // Calculate the difference in milliseconds
-    const timeDifference = endTimestamp - startTimestamp;
 
-    // Define the maximum allowed duration (4 weeks in milliseconds)
-    const maxDuration = 2 * 4 * 7 * 24 * 60 * 60 * 1000;
-
-    // Check if the selected duration is within the allowed range
-    if (timeDifference <= maxDuration) {
+    var date2 = new Date(startTimestamp.setMonth(startTimestamp.getMonth() + 1));
+    let currentDate = new Date();
+    console.log("currentDate: ", currentDate)
+    if (date2 < currentDate) {
       // Valid time range, you can proceed with saving
       console.log('Start Date:', startDate);
-      console.log('End Date:', endDate);
 
       // Save time in the job variable
       job.date = startDate;
@@ -349,11 +343,11 @@ function saveTime() {
       map.closePopup();
     } else {
       // Display an error message to the user
-      alert('Please select a time range within a 4-week period.');
+      alert('Please select a time in the past');
     }
   } else {
     // Display an error message if either start or end date is missing
-    alert('Please select both start and end dates.');
+    alert('Please select a date.');
   }
 }
 
@@ -505,24 +499,24 @@ async function startDownload(calc) {
   console.log(obj)
   let calculation;
   try {
-    if(calc == 'Classification'){
-      if(job.model_id == null){
+    if (calc == 'Classification') {
+      if (job.model_id == null) {
         alert("please select a model first")
         return;
       }
     }
-    if(calc == 'model'){
+    if (calc == 'model') {
       document.getElementById('loading-spinner-model').style.display = 'block';
-    }else{
+    } else {
       document.getElementById('loading-spinner').style.display = 'block';
     }
     const responseData = await api_call('jobs', 'POST', "/", obj);
-    if(calc == 'model'){
+    if (calc == 'model') {
       document.getElementById('loading-spinner-model').style.display = 'none';
-    }else{
+    } else {
       document.getElementById('loading-spinner').style.display = 'none';
     }
-    
+
     console.log("response: ", responseData)
     calculation = responseData.calculation; // This will log the response data to the console
     //Anzahl der classes wird aus dem job ausgelesen. Im moment noch in UseTrainedModel, später dann über die Auswahl von model
@@ -550,8 +544,8 @@ async function startDownload(calc) {
     // Chroma color scale definition
     //TODO: Welche Farben nimmt man wenn man nicht weiß wie viele Klassen es gibt? Domain muss auch dynamisch gemacht werden
     const scale = chroma.scale([
-      '#90EE90', '#0000FF', '#00FF00', '#8B0000', '#FF0000', '#F4A460', '#007500', '#89cff0', '#aa00bb','#fe4300'
-    ]).domain([1, 2, 3, 4, 5, 6, 7,8,9,10]);
+      '#90EE90', '#0000FF', '#00FF00', '#8B0000', '#FF0000', '#F4A460', '#007500', '#89cff0', '#aa00bb', '#fe4300'
+    ]).domain([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
 
     fetch(url_to_geotiff_file)
@@ -673,7 +667,7 @@ function create_legend(classes) {
   if (cs.getContext) {
     let ctx = cs.getContext('2d');
     //TODO: Chroma scale an chroma scale oben anpassen
-    let allchromas = [ '#90EE90', '#0000FF', '#00FF00', '#8B0000', '#FF0000', '#F4A460', '#007500', '#89cff0', '#aa00bb','#fe4300']
+    let allchromas = ['#90EE90', '#0000FF', '#00FF00', '#8B0000', '#FF0000', '#F4A460', '#007500', '#89cff0', '#aa00bb', '#fe4300']
     let chromas = allchromas.slice(0, classnames.length)
     console.log(chromas)
     let scl = chroma.scale(chromas).classes(chromas.length);
@@ -756,8 +750,8 @@ function trainManually() {
 
 }
 function useTrainedModel() {
-  const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
-  //const apiUrl = "http://r-backend:8000/models";
+  //const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
+  const apiUrl = "http://localhost:8000/models";
   console.log("url = ", apiUrl)
 
   // Container, in den wir die Modelle einfügen werden
