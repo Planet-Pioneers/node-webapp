@@ -18,11 +18,11 @@ exports.create = async (req, res) => {
   resolution = req.body.resolution;
   trainingdata = req.body.trainingdata;
   date1 = req.body.date;
-  
+
   console.log(coordinates);
   console.log(date1);
   let date = new Date(date1)
-  var date2 = new Date(date.setMonth(date.getMonth()+1));
+  var date2 = new Date(date.setMonth(date.getMonth() + 1));
   let date2string = date2.toISOString();
   date2 = date2string.split("T")[0];
   console.log(date2)
@@ -56,27 +56,17 @@ exports.create = async (req, res) => {
   //and then use that ip adress instead of localhost!
   //const con = await OpenEO.connect("http://r-backend:8000/");
   const openeocubesUri = process.env.OPENEOCUBES_URI;
-  console.log("connecting to: ", "http://r-backend:8000")
-  const con = await OpenEO.connect("http://r-backend:8000")
-  //const con = await OpenEO.connect("http://r-backend:8000/")
-
-
-  // Connect to the back-end when deployed on AWS
-  //const con = await OpenEO.connect("http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000");
-
-  // Basic login with default params
-  await con.authenticateBasic("user", "password");
-
-  var info = con.capabilities();
-  console.log("API Version: ", info.apiVersion());
-  console.log("Description: ", info.description());
-  /*  console.log("Available Processes:");
-     var response = await con.listProcesses();
-    response.processes.forEach(process => {
-      console.log(`${process.id}: ${process.summary}`);
-    });
-   */
-
+  console.log("connecting to: ", openeocubesUri)
+  let con;
+  try {
+    con = await OpenEO.connect(openeocubesUri)
+    await con.authenticateBasic("user", "password");
+    var info = con.capabilities();
+    console.log("API Version: ", info.apiVersion());
+    console.log("Description: ", info.description());
+  } catch (error) {
+    console.error('error connecting to openeo:', error.message)
+  }
 
   if (calculation == "Classification") {
     console.log("model selected:")
@@ -103,36 +93,54 @@ exports.create = async (req, res) => {
         console.error('Error deleting the file:', err);
       }
     });
-    await con.downloadResult(test, filepath);
+    try {
+      await con.downloadResult(test, filepath);
+    } catch (error) {
+      console.error('Error calculating classification:', error.message);
+    }
+
     console.log("prediction done!")
 
 
 
   } else if (calculation == "composite") {
-    console.log("calculate Composite!")
-    //calculates cloud free composite:
-    var builder = await con.buildProcess();
-    var datacube_init = builder.load_collection(
-      "sentinel-s2-l2a-cogs",
-      cordjson,
-      [date1, date2],
-      undefined,
-      resolution
-    );
-    datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04"]);
-    datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
-    result = builder.save_result(datacube_agg, "GTiff", {
-      red: "B02",
-      blue: "B03",
-      greeen: "B04"
-    });
-    const filepath = "./public/results/composite.tif"
-    fs.unlink(filepath, async (err) => {
-      if (err) {
-        console.error('Error deleting the file:', err);
-      }
-    });
-    await con.downloadResult(datacube_agg, filepath);
+    var filepath = "./public/results/composite.tif"
+    try {
+      console.log("calculate Composite!")
+      //calculates cloud free composite:
+      var builder = await con.buildProcess();
+      var datacube_init = builder.load_collection(
+        "sentinel-s2-l2a-cogs",
+        cordjson,
+        [date1, date2],
+        undefined,
+        resolution
+      );
+      datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04"]);
+      datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
+      result = builder.save_result(datacube_agg, "GTiff", {
+        red: "B02",
+        blue: "B03",
+        greeen: "B04"
+      });
+      fs.unlink(filepath, async (err) => {
+        if (err) {
+          console.error('Error deleting the file:', err);
+        }
+      });
+    } catch (error) {
+      console.error('error creating process graph for calculation', error.message)
+      res.send(0);
+    }
+
+   
+    try {
+      await con.downloadResult(datacube_agg, filepath);
+    } catch (error) {
+      console.error('Error calculating conposite:', error.message);
+      res.sendStatus(0);
+    }
+
     console.log("done!")
 
 
@@ -189,21 +197,6 @@ exports.create = async (req, res) => {
     var datacube_init = builder.load_collection(
       "sentinel-s2-l2a-cogs",
       bbox,
-
-      /* {
-        west: 829265.3071,
-        south: 6726936.2588,
-        east: 851279.1817,
-        north: 6743733.2687,
-        crs: 3857
-      },
-     {
-        west: 837596.9559,
-        south: 6785525.2027,
-        east: 857222.1630,
-        north: 6798404.8420,
-        crs: 3857
-      },*/
       [date1, date2],
       undefined,
       resolution
@@ -211,9 +204,8 @@ exports.create = async (req, res) => {
     datacube_filtered = builder.filter_bands(datacube_init, ["B02", "B03", "B04", "B08", "B06", "B07", "B11"]);
     datacube_agg = builder.aggregate_temporal_period(datacube_filtered, "month", "median")
     datacube_ndvi = builder.ndvi(datacube_agg, "B08", "B04", true)
-    //console.log(geojsonContent)
     model = builder.train_model(datacube_ndvi, trainingdata, uid)
-    //classification = builder.classify(datacube_ndvi, model)
+
 
 
     result = builder.save_result(model, "RDS");
@@ -223,7 +215,11 @@ exports.create = async (req, res) => {
         console.error('Error deleting the file:', err);
       }
     });
-    await con.downloadResult(model, filepath);
+    try {
+      await con.downloadResult(datacube_agg, filepath);
+    } catch (error) {
+      console.error('Error calculating model:', error.message);
+    }
     console.log("model trained!")
 
 

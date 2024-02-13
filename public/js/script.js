@@ -326,7 +326,7 @@ function saveTime() {
     // Parse the selected dates
     const startTimestamp = new Date(startDate);
     console.log(startTimestamp)
-  
+
 
 
     var date2 = new Date(startTimestamp.setMonth(startTimestamp.getMonth() + 1));
@@ -457,8 +457,7 @@ function showSection(sectionId) {
 }
 
 // Function for the "Continue" button in the "Confirmation of Area" section
-// Function for the "Continue" button in the "Confirmation of Area" section
-function confirmArea() {
+async function confirmArea() {
   const drawnLayerCount = Object.keys(drawnItems._layers).length;
   const geoJSONLayerCount = Object.keys(allLayers).length;
   console.log(geoJSONLayerCount)
@@ -469,7 +468,23 @@ function confirmArea() {
     let coordinates = Object.values(drawnItems._layers)[0]._latlngs[0];
     let arrayOfArrays = coordinates.map(obj => [obj.lat, obj.lng]);
     job.coordinates = arrayOfArrays;
-    console.log(job);
+    console.log("making call now...")
+    console.log("job: " , job)
+    const response = await fetch('/Stac_Call', {  // calling satellite
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        date: job.date,
+        coordinates: job.coordinates
+      })
+    })
+    // if response is not returned properly, returns errors
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    console.log("response: " , response)
   } else {
     // Display an error message if there are not exactly one polygon and a date selected
     if (drawnLayerCount !== 1) {
@@ -510,7 +525,10 @@ async function startDownload(calc) {
     } else {
       document.getElementById('loading-spinner').style.display = 'block';
     }
+
     const responseData = await api_call('jobs', 'POST', "/", obj);
+    console.log("response: " , responseData);
+
     if (calc == 'model') {
       document.getElementById('loading-spinner-model').style.display = 'none';
     } else {
@@ -518,14 +536,14 @@ async function startDownload(calc) {
     }
 
     console.log("response: ", responseData)
-    calculation = responseData.calculation; // This will log the response data to the console
-    //Anzahl der classes wird aus dem job ausgelesen. Im moment noch in UseTrainedModel, später dann über die Auswahl von model
+    calculation = responseData.calculation; 
+    //Anzahl der classes wird aus dem job ausgelesen. 
     classes = job.classes;
     console.log("selected Model has ", classes)
-    // classes = responseData.classes
-    //TODO: Existiert noch nicht aber diese Anzahl wäre dann wie viele Klassen es gibt. Daraufhin muss die Legende skaliert werden
   } catch (error) {
+    alert("error")
     console.error(error); // Handle errors here
+    return;
   }
   if (calculation == "Classification") {
     //Initiate Legend
@@ -648,10 +666,10 @@ function create_legend(classes) {
   // Use regular expression to find all substrings within single quotes
   const matches = classes.match(/'([^']+)'/g);
 
-  // Remove single quotes from each match
+  // Remove single quotes and leading number from the class names.
   const classnames = matches.map(match => match.replace(/'/g, ''));
+  classnames = array.map(classnames => classnames.replace(/\d/g, ''));
 
-  //TODO: Größe vom Canvas auf anzahl der Klassen anpassen?
   let cs = L.DomUtil.create('canvas');
   const legend_plane_width = 125;
   const legend_plane_height = 245;
@@ -660,8 +678,6 @@ function create_legend(classes) {
   const margin_top = 30;
   const legend_width = 30;
   const div_height = 2;
-  const tick_length = 5;
-  const margin_text_lengend = 30;
   cs.width = legend_plane_width;
   cs.height = legend_plane_height;
   if (cs.getContext) {
@@ -685,13 +701,9 @@ function create_legend(classes) {
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'black';
     ctx.fillText("Legende", 4, 20);
-    const left_pos_top = 46;
-    const top_pos = 45;
     ctx.textAlign = 'left';
     const left_pos_2nd = 45;
-    //TODO Label ändern zu labels aus dem Model (das es noch nicht gibt hier)
-    //TODO: Hier die Position vom Text anpassen. Warum nicht die gleiche Skalierung nehmen wie bei den Rechtecken?
-    //Weil das aus irgend einem grund nicht klappt
+
     for (let i = 0; i < classnames.length; i++) {
       const label = classnames[classnames.length - i - 1]; // Remove leading digits
       const top_pos = 45 + i * 210 / classnames.length;
@@ -750,7 +762,6 @@ function trainManually() {
 
 }
 function useTrainedModel() {
-  //const apiUrl = "http://ec2-54-201-136-219.us-west-2.compute.amazonaws.com:8000/models";
   const apiUrl = "/models";
   console.log("url = ", apiUrl)
 
@@ -797,15 +808,29 @@ function useTrainedModel() {
       data.forEach(model => {
         const row = document.createElement("tr");
         const modelName = document.createElement("td");
-        modelName.textContent = model[0];
-        const extraInfo1 = document.createElement("td");
-        extraInfo1.textContent = model[4];
-        const extraInfo2 = document.createElement("td");
-        extraInfo2.textContent = model[6];
-        const extraInfo3 = document.createElement("td");
-        extraInfo3.textContent = model[8];
-        const extraInfo4 = document.createElement("td");
-        extraInfo4.textContent = model[11];
+        let extraInfo1, extraInfo2, extraInfo3, extraInfo4;
+        if (model[2]) {
+          modelName.textContent = model[0];
+          extraInfo1 = document.createElement("td");
+          extraInfo1.textContent = model[4];
+          extraInfo2 = document.createElement("td");
+          extraInfo2.textContent = model[6];
+          extraInfo3 = document.createElement("td");
+          extraInfo3.textContent = model[8];
+          extraInfo4 = document.createElement("td");
+          extraInfo4.textContent = model[11];
+        } else {
+          modelName.textContent = model[0];
+          extraInfo1 = document.createElement("td");
+          extraInfo1.textContent = model[1];
+          extraInfo2 = document.createElement("td");
+          extraInfo2.textContent = model[3];
+          extraInfo3 = document.createElement("td");
+          extraInfo3.textContent = model[5];
+          extraInfo4 = document.createElement("td");
+          extraInfo4.textContent = model[8];
+        }
+
         const selectButtonCell = document.createElement("td");
         const selectButton = document.createElement("button");
         selectButton.textContent = "Select Model";
@@ -825,7 +850,12 @@ function useTrainedModel() {
           const model_name = modelName.match(/model(\d+)\./);
           job.model_id = model_name[1];
           console.log("model_id added");
-          job.classes = model[8];
+          if (model[2]) {
+            job.classes = model[8];
+          } else {
+            job.classes = model[5];
+          }
+
           console.log("classes added");
           console.log("job: ", job);
         });

@@ -183,6 +183,9 @@ load_collection <- Process$new(
 
     # Connect to STAC API and get satellite data
     message("STAC API call....")
+    message(id)
+    message(c(xmin_stac, ymin_stac, xmax_stac, ymax_stac))
+    message(time_range)
     stac_object <- stac("https://earth-search.aws.element84.com/v0")
     items <- stac_object %>%
       stac_search(
@@ -194,15 +197,25 @@ load_collection <- Process$new(
       post_request() %>%
       items_fetch()
     # create image collection from stac items features
+    message("after stac call...")
+    print(items)
     assets <- c("B01","B02","B03","B04","B05","B06", "B07","B08","B8A","B09","B11","SCL")
-    img.col <- gdalcubes::stac_image_collection(items$features, asset_names = assets,
+    tryCatch({
+      img.col <- gdalcubes::stac_image_collection(items$features, asset_names = assets,
                                                 property_filter =
                                                   function(x) {
                                                     x[["eo:cloud_cover"]] < 30
                                                   }
-    )
+                       )
+    },
+    error = function(err)
+    {
+      message("An Error occured!")
+      message(toString(err))
+      stop(err)
+    })
+    
     message("Image collection created...")
-    message("collection: ")
     message("resolution: ")
     message(resolution)
     message(capture.output(print(img.col)))
