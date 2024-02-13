@@ -42,10 +42,26 @@
         </nav>
     </header>
     <div class="container">
-        <h2 class="mt-4">Start</h2>
-        <p>Wählen Sie Ihr Interessensbereich aus: Auswahlmöglichkeiten über Zeichenfunktion, Datei-Upload und Textfeld</p>
+        <!-- Model Selection Section -->
+        <h2 class="mt-4">Trainiertes Model verwenden oder neues Model trainieren</h2>
+        <p>Sie können ein bereits trainiertes Model wählen oder ein Model sebst trainieren durch das Upload von Trainingsdaten.</p>
+        <button class="btn btn-primary mt-2" onclick="useTrainedModel()">Trainiertes Model</button>
+        <div id="model-container"></div>
+        <button class="btn btn-primary mt-2" onclick="trainNewModel()">Neues Model trainieren</button>
+        
+        <!-- Training Data Selection Section -->
+        <div id="training-data-section" style="display: none;">
+        <h2 class="mt-4">Auswahl der Trainingsdaten</h2>
+        <p>Wählen Sie die Trainingsdaten aus: Auswahlmöglichkeiten über Datei-Upload und selbst trainieren (Zeichenfunktion auf der Karte).</p>
+        <input class="form-control" type="file" id="geojson-file-input2" />
+        <button id="upload-training-data-btn" class="btn btn-primary mt-2" onclick="uploadTrainingData()">Upload</button> 
+        <button id="train-manually-btn" class="btn btn-primary mt-2" onclick="trainManually()">Selbst trainieren</button>
+        <button id="train-model-btn" class="btn btn-primary mt-2 model-train-button" onclick="startDownload('model')" style="display: none;">Modell trainieren</button>
+        </div>
 
         <!-- Map Section -->
+        <h2 class="mt-4">Interessenbereich wählen</h2>        
+        <p>Wählen Sie Ihr Interessensbereich aus: Auswahlmöglichkeiten über Zeichenfunktion, Datei-Upload und Textfeld</p>
         <div id="map" style="height: 400px;"></div>
 
         <!-- Upload Section -->
@@ -110,23 +126,6 @@
      <input type="range" class="form-range" id="resolution-slider" min="1" max="10" value="9" />
      <p id="resolution-value"> 30 Meter pro Pixel</p>
  </div>
-
- <!-- Model Selection Section -->
- <h2 class="mt-4">Trainiertes Model verwenden oder neues Model trainieren</h2>
- <button class="btn btn-primary mt-2" onclick="useTrainedModel()">Trainiertes Model</button>
- <div id="model-container"></div>
- <button class="btn btn-primary mt-2" onclick="trainNewModel()">Neues Model trainieren</button>
- 
- <!-- Training Data Selection Section -->
- <div id="training-data-section" style="display: none;">
- <h2 class="mt-4">Auswahl der Trainingsdaten</h2>
- <p>Wählen Sie die Trainingsdaten aus: Auswahlmöglichkeiten über Datei-Upload und selbst trainieren (Zeichenfunktion auf der Karte)</p>
- <input class="form-control" type="file" id="geojson-file-input2" />
- <button id="upload-training-data-btn" class="btn btn-primary mt-2" onclick="uploadTrainingData()">Upload</button> 
- <button id="train-manually-btn" class="btn btn-primary mt-2" onclick="trainManually()">Selbst trainieren</button>
- <button id="train-model-btn" class="btn btn-primary mt-2 model-train-button" onclick="startDownload('model')" style="display: none;">Modell trainieren</button>
-</div>
-
 
  <!-- Calculation Section -->
      <h2 class="mt-4">Berechnung starten</h2>
