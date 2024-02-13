@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const fetch = require('node-fetch');
 require("dotenv").config();
 
 const app = express();
@@ -38,6 +39,16 @@ app.get("/", (req, res) => {
     "Allow-access-Allow-Origin": '*'
   })
   return res.redirect('index.html');
+});
+app.get('/models', async (req, res) => {
+  try {
+    const response = await fetch('http://r-backend:8000/models');
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 
