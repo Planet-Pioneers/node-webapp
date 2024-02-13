@@ -1,4 +1,4 @@
-# Earth Classifier: Web- Toll für die überwachte Klassifikation von Erdbeobachtungsdaten in OpenEO
+# Earth Classifier: Web-Tool für die überwachte Klassifikation von Erdbeobachtungsdaten in OpenEO
 ## Zielsetzung des Projekts
 Satelliten sammeln viele verschiedene Informationen über die Erde (z.B. über die Landnutzung).
 Dabei entstehen riesige Mengen an Daten. Um diese zu verarbeiten, bietet es sich an MLAlgorithmen zu nutzen.
@@ -15,16 +15,10 @@ Download-Funktion als GeoTIFF zur Verfügung
 
 Klonen Sie das Repository auf Ihrem lokalen System.
 Installieren Sie die erforderlichen Abhängigkeiten mit
-```bash
-npm install
-```
-Starten Sie die Anwendung mit
-```bash
-npm start
-```
+
 oder
 ```bash
-Docker compose up --build
+Docker-compose up 
 ```
 Öffnen Sie die Website in ihrem browser auf localhost:3000/
 
