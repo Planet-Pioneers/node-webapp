@@ -969,5 +969,6 @@ async function exampleprocess() {
   alert("now the model is calculated... This will take a couple of minutes")
   await startDownload('model');
   alert("model calculation done! Selecting newly trained model and calculating prediction for selected area")
-  startDownload('Classification')
+  setTimeout(3000, startDownload('Classification'));
+  
 }

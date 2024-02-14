@@ -3,6 +3,7 @@ const Job = db.jobs;
 const { OpenEO } = require('@openeo/js-client');
 const fs = require('fs');
 const proj4 = require('proj4');
+const turf = require('@turf/turf')
 
 
 // Create and Save a new Job
@@ -187,19 +188,48 @@ exports.create = async (req, res) => {
           });
         }
       });
-      //Check if the bbox is too large
+
+      //function that calculates the perimeter of a boundinbox
+      function calculatePolygonPerimeter(bbox) {
+        const coordinates = [
+          [bbox.west, bbox.south],
+          [bbox.west, bbox.north],
+          [bbox.east, bbox.north],
+          [bbox.east, bbox.south],
+          [bbox.west, bbox.south] // closing the polygon
+        ];
+
+        // Convert coordinates to a turf polygon feature in EPSG:4326
+        const polygonFeature = turf.polygon([coordinates]);
+
+        // Calculate the perimeter in kilometers
+        const perimeterKm = turf.length(polygonFeature, { units: 'kilometers' });
+
+        return perimeterKm;
+      }
+
+
+      //convert bbox to 4326 to check perimeter
       const convertedBbox = {
         west: proj4('EPSG:3857', 'EPSG:4326', [bbox.west, bbox.south])[0],
         south: proj4('EPSG:3857', 'EPSG:4326', [bbox.west, bbox.south])[1],
         east: proj4('EPSG:3857', 'EPSG:4326', [bbox.east, bbox.north])[0],
         north: proj4('EPSG:3857', 'EPSG:4326', [bbox.east, bbox.north])[1]
       };
-      const westEastWidth = convertedBbox.east - convertedBbox.west;
-      const southNorthHeight = convertedBbox.north - convertedBbox.south;
 
-      // Calculate the area of the bounding box
-      const area = westEastWidth * southNorthHeight;
-      console.log("area: " , area)
+
+
+      const perimeter = calculatePolygonPerimeter(convertedBbox);
+      //if perimeter around trainingdata is larger then 300km stop calculation 
+      if (perimeter > 300) {
+        console.log('error creating bounding box around trainingdata. Area too large')
+        res.status(500).send({
+          message:
+            "error creating bounding box around trainingdata. Area too large."
+        });
+      }
+
+      console.log("perimeter: ", perimeter)
       return bbox;
     }
     let bbox = getBounds(trainingdata)
