@@ -32,8 +32,14 @@ Docker-compose up
 
 ## Hinweise
 - Das ausgewählte Datum muss mindestens 4 Wochen in der Vergangenheit liegen (3. Schritt)
-- Trainigsdaten sind in folgender Struktur hochzuladen: (1. Schritt)
-- Je größer das ausgwählte Interssensgebiet, desto länger dauert die Berechnung (2. und 5. Schritt)
+- Trainigsdaten (labelled Polygons) sind als GeoJSON in folgender Struktur hochzuladen: (1. Schritt)
+    - type: FeatureCollection
+    - crs: { "type": "name", "properties": { "name": CRS } }
+    - features : [
+      - properties: { Label: mylabel }, geometry: { type: Polygon, coordinates: [[[ ... ]]]
+     ]
+- Bei Berechnungen  die länger als 5 Minuten dauern, bricht bei uns die Server-connection ab, wenn der Server auf AWS läuft
+- Wenn ein Zeitraum und Ort ausgewählt wird, wird ein stac call gemacht, um sicherzustellen, dass es genug passenden Satellitenbilder gibt, jedoch stimmt das Ergebnis aus unserem stac call nicht mit dem openeocubes stac call überein. Wenn also openeocubes keine Bilder findet, wird ein Error geworfen, der im Frontend nicht gecatched wird und die Berechnung abbricht  
 
 ## Verwendete Technologien
 Frontend:
