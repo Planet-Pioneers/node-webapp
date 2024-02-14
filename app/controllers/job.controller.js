@@ -20,19 +20,20 @@ exports.create = async (req, res) => {
   trainingdata = req.body.trainingdata;
   date1 = req.body.date;
 
-  console.log(coordinates);
-  console.log(date1);
+  //Format date
   let date = new Date(date1)
   var date2 = new Date(date.setMonth(date.getMonth() + 1));
   let date2string = date2.toISOString();
   date2 = date2string.split("T")[0];
-  console.log(date2)
 
+
+
+  //switch coordinates for proj4
   function switchCoordinatesOrder(coordinates) {
     return coordinates.map(coord => [coord[1], coord[0]]);
   }
 
-
+  //change coords to 3857 for the R-backend
   let switchedCoordinates = switchCoordinatesOrder(coordinates)
   const coordinates3857 = switchedCoordinates.map(coord => proj4('EPSG:4326', 'EPSG:3857', coord));
   let switchedCoordinates3857 = switchCoordinatesOrder(coordinates3857);
@@ -41,6 +42,8 @@ exports.create = async (req, res) => {
   let south = switchedCoordinates3857[0][0];
   let east = switchedCoordinates3857[2][1];
   let north = switchedCoordinates3857[1][0];
+
+  //create json object for the area of interest
   cordjson = {
     crs: 3857
   }
@@ -52,13 +55,11 @@ exports.create = async (req, res) => {
   console.log(cordjson);
 
 
-  //console.log("trying to connect to openeocubes on 0.0.0.0")
-  //sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINER ID 
-  //and then use that ip adress instead of localhost!
-  //const con = await OpenEO.connect("http://r-backend:8000/");
+  //connect to the url provided in the docker-compose file
   const openeocubesUri = process.env.OPENEOCUBES_URI;
   console.log("connecting to: ", openeocubesUri)
   let con;
+  //set up the connection
   try {
     con = await OpenEO.connect(openeocubesUri)
     await con.authenticateBasic("user", "password");
@@ -69,7 +70,11 @@ exports.create = async (req, res) => {
     console.error('error connecting to openeo:', error.message)
   }
 
+
+
+  //If the job is a classification
   if (calculation == "Classification") {
+    //create the process graph
     console.log("model selected:")
     console.log(req.body.model_id);
     model_id = req.body.model_id;
@@ -88,6 +93,7 @@ exports.create = async (req, res) => {
 
 
     result = builder.save_result(test, "GTiff");
+    //remove old prediction file to make sure it gets replaced
     const filepath = "./public/results/prediction.tif"
     fs.unlink(filepath, async (err) => {
       if (err) {
@@ -95,6 +101,7 @@ exports.create = async (req, res) => {
       }
     });
     try {
+      //download result
       await con.downloadResult(test, filepath);
     } catch (error) {
       console.error('Error calculating classification:', error.message);
@@ -103,8 +110,9 @@ exports.create = async (req, res) => {
     console.log("prediction done!")
 
 
-
+    //If the job is a color composite
   } else if (calculation == "composite") {
+    //create process graph
     var filepath = "./public/results/composite.tif"
     try {
       console.log("calculate Composite!")
@@ -124,6 +132,7 @@ exports.create = async (req, res) => {
         blue: "B03",
         greeen: "B04"
       });
+      //remove old prediction file to make sure it gets replaced
       fs.unlink(filepath, async (err) => {
         if (err) {
           console.error('Error deleting the file:', err);
@@ -139,6 +148,7 @@ exports.create = async (req, res) => {
 
 
     try {
+      //download result
       await con.downloadResult(datacube_agg, filepath);
     } catch (error) {
       console.error('Error calculating composite:', error.message);
@@ -150,7 +160,7 @@ exports.create = async (req, res) => {
 
     console.log("done!")
 
-
+    //If the calculation is a model
   } else if (calculation == "model") {
     //create uid for model
     const uid = Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
@@ -158,6 +168,7 @@ exports.create = async (req, res) => {
 
     //then get minmax bounds of the trainingdata here. 
     function getBounds(geojson) {
+      //get the name of the crs
       let crstring = geojson.crs.properties.name;
       const concatenatedNumber = Number((crstring.match(/\d+/g) || []).join(''));
 
@@ -172,7 +183,7 @@ exports.create = async (req, res) => {
         south: Infinity,
         east: -Infinity,
         north: -Infinity,
-        crs: concatenatedNumber, // Change this to the appropriate CRS code
+        crs: concatenatedNumber, 
       };
 
       // Iterate through features to find the bounding box
@@ -232,12 +243,12 @@ exports.create = async (req, res) => {
       console.log("perimeter: ", perimeter)
       return bbox;
     }
+    //create bbox
     let bbox = getBounds(trainingdata)
     console.log(bbox);
     trainingdata = JSON.stringify(req.body.trainingdata);
 
-
-
+    //create the process graph
     var builder = await con.buildProcess();
     var datacube_init = builder.load_collection(
       "sentinel-s2-l2a-cogs",
@@ -261,6 +272,7 @@ exports.create = async (req, res) => {
       }
     });
     try {
+      //download result
       await con.downloadResult(datacube_agg, filepath);
     } catch (error) {
       console.error('Error calculating model:', error.message);
