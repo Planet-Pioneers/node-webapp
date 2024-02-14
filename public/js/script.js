@@ -969,6 +969,10 @@ async function exampleprocess() {
   document.getElementById('train-model-btn').style.display = 'block';
   setTimeout(() => {
     alert("now the model is calculated... This will take a couple of minutes")
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth'
+    });
   }, 3000);
 
   await startDownload('model');
