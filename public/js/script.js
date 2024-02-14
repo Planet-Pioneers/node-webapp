@@ -105,7 +105,7 @@ document.getElementById('geojson-file-input').addEventListener('change', functio
     // Add GeoJSON to the map and the allLayers array
     const geoJsonLayer = L.geoJSON(geojsonData).addTo(map);
     allLayers.push(geoJsonLayer);
-
+    drawnItems.addLayer(geoJsonLayer);
     // Show the popup for the GeoJSON layer
     drawPopup(geoJsonLayer);
   };
@@ -248,6 +248,10 @@ async function uploadTrainingData() {
 
         })
       };
+      if(classIdCounter < 3 || classIdCounter > 11){
+        alert("trainingdata must include between 3 and 10 classes")
+        return;
+      }
       job.trainingdata = modifiedGeojson2;
       console.log("after:", modifiedGeojson2);
       // Add the modified GeoJSON to the Leaflet map
@@ -393,10 +397,10 @@ function insertGeoJSONTemplate() {
     "type": "Polygon",
     "coordinates": [
       [
-        [7.531695, 51.919142], 
-        [7.531695, 51.997845], 
-        [7.712970, 51.997845], 
-        [7.712970, 51.919142]
+        [7.586703300476075, 51.94809528449537], 
+        [7.586703300476075, 51.96555017300791], 
+        [7.620434761047364, 51.96555017300791], 
+        [7.620434761047364, 51.94809528449537]
       ]
     ]
   },
@@ -425,10 +429,12 @@ function saveData() {
     ) {
       // Add GeoJSON to the map
       const geoJsonLayer = L.geoJSON(geoJsonData).addTo(map);
+      drawnItems.addLayer(geoJsonLayer);
+
 
 
       // Show the popup for the GeoJSON layer
-      drawPopup(geoJsonLayer);
+      //drawPopup(geoJsonLayer);
     } else {
       console.error('Invalid GeoJSON format. Please enter a valid Polygon or Rectangle GeoJSON.');
     }
@@ -461,17 +467,31 @@ async function confirmArea() {
   const drawnLayerCount = Object.keys(drawnItems._layers).length;
   const geoJSONLayerCount = Object.keys(allLayers).length;
   console.log(geoJSONLayerCount)
-  console.log(drawnItems)
+  console.log(drawnLayerCount)
+  console.log(typeof drawnItems._layers)
 
   if (drawnLayerCount === 1 && job.date !== "") {
     showSection('algorithm-section');
-    let coordinates = Object.values(drawnItems._layers)[0]._latlngs[0];
+
+    console.log(drawnItems._layers);
+    let coordinates;
+    if (geoJSONLayerCount >= 1) {
+      //if coordinates were drawn
+      console.log("drawnlayer")
+      coordinates = Object.values(drawnItems._layers)[0]._latlngs[0];
+
+    } else {
+      //If coordinates were uploaded as geojson
+      geojsoncoordinates = Object.values(drawnItems._layers)[0]._layers;
+      console.log("geojsoncoordinates: ", geojsoncoordinates)
+      coordinates = Object.values(geojsoncoordinates)[0]._latlngs[0];
+    }
     let arrayOfArrays = coordinates.map(obj => [obj.lat, obj.lng]);
     job.coordinates = arrayOfArrays;
     console.log("making call now...")
-    console.log("job: " , job)
-    const response = await fetch('/Stac_Call', {  // calling satellite
-      method: 'POST',
+    console.log("job: ", job)
+    const response = await fetch('/Stac_Call', {  // calling stac to see how many images there are. However this does not reflect the images found by openeocubes :(
+      method: 'POST',                             // so it doesn't help to catch the error if openeocubes can't find images
       headers: {
         'Content-Type': 'application/json'
       },
@@ -484,7 +504,7 @@ async function confirmArea() {
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
-    console.log("response: " , response)
+    console.log("response: ", response)
   } else {
     // Display an error message if there are not exactly one polygon and a date selected
     if (drawnLayerCount !== 1) {
@@ -527,7 +547,7 @@ async function startDownload(calc) {
     }
 
     const responseData = await api_call('jobs', 'POST', "/", obj);
-    console.log("response: " , responseData);
+    console.log("response: ", responseData);
 
     if (calc == 'model') {
       document.getElementById('loading-spinner-model').style.display = 'none';
@@ -536,7 +556,7 @@ async function startDownload(calc) {
     }
 
     console.log("response: ", responseData)
-    calculation = responseData.calculation; 
+    calculation = responseData.calculation;
     //Anzahl der classes wird aus dem job ausgelesen. 
     classes = job.classes;
     console.log("selected Model has ", classes)
@@ -667,7 +687,7 @@ function create_legend(classes) {
   const matches = classes.match(/'([^']+)'/g);
 
   // Remove single quotes and leading number from the class names.
-  const classnames = matches.map(match => match.replace(/'/g, ''));
+  let classnames = matches.map(match => match.replace(/'/g, ''));
   classnames = classnames.map(classnames => classnames.replace(/\d/g, ''));
 
   let cs = L.DomUtil.create('canvas');
@@ -918,3 +938,36 @@ resolutionSlider.addEventListener('input', function () {
   // Update the displayed resolution value
   resolutionValue.textContent = selectedResolution.label;
 });
+
+
+async function exampleprocess() {
+  //Start by selecting area of interest and a date
+  insertGeoJSONTemplate();
+  saveData();
+  job.date = "2020-06-01"
+  confirmArea();
+  trainNewModel();
+  alert("First an area of interest and a date is chosen, then trainingdata for modeltraining is uploaded")
+  setTimeout(3000);
+  //fetching example trainingdata
+  await fetch("../results/trainingsites.geojson")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(geojson => {
+      console.log('GeoJSON data:', geojson);
+
+      if(is_valid_geojson(geojson)){
+        job.trainingdata = geojson;
+        uploadTrainingData();
+      }
+    })
+  setTimeout(3000);
+  alert("now the model is calculated... This will take a couple of minutes")
+  await startDownload('model');
+  alert("model calculation done! Selecting newly trained model and calculating prediction for selected area")
+  startDownload('Classification')
+}

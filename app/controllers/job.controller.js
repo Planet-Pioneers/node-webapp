@@ -130,15 +130,21 @@ exports.create = async (req, res) => {
       });
     } catch (error) {
       console.error('error creating process graph for calculation', error.message)
-      res.send(0);
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while calculating the composite."
+      });
     }
 
-   
+
     try {
       await con.downloadResult(datacube_agg, filepath);
     } catch (error) {
-      console.error('Error calculating conposite:', error.message);
-      res.sendStatus(0);
+      console.error('Error calculating composite:', error.message);
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while downloading the composite."
+      });
     }
 
     console.log("done!")
@@ -182,9 +188,18 @@ exports.create = async (req, res) => {
         }
       });
       //Check if the bbox is too large
-      const deltax = (bbox.east - bbox.west);
-      const deltay = (bbox.north - bbox.south)
-      console.log("deltax: ", deltax, " deltay: ", deltay)
+      const convertedBbox = {
+        west: proj4('EPSG:3857', 'EPSG:4326', [bbox.west, bbox.south])[0],
+        south: proj4('EPSG:3857', 'EPSG:4326', [bbox.west, bbox.south])[1],
+        east: proj4('EPSG:3857', 'EPSG:4326', [bbox.east, bbox.north])[0],
+        north: proj4('EPSG:3857', 'EPSG:4326', [bbox.east, bbox.north])[1]
+      };
+      const westEastWidth = convertedBbox.east - convertedBbox.west;
+      const southNorthHeight = convertedBbox.north - convertedBbox.south;
+
+      // Calculate the area of the bounding box
+      const area = westEastWidth * southNorthHeight;
+      console.log("area: " , area)
       return bbox;
     }
     let bbox = getBounds(trainingdata)
