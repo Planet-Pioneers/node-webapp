@@ -942,13 +942,14 @@ resolutionSlider.addEventListener('input', function () {
 
 async function exampleprocess() {
   //Start by selecting area of interest and a date
+
   insertGeoJSONTemplate();
   saveData();
   job.date = "2020-06-01"
   confirmArea();
   trainNewModel();
   alert("First an area of interest and a date is chosen, then trainingdata for modeltraining is uploaded")
-  setTimeout(3000);
+  
   //fetching example trainingdata
   await fetch("../results/trainingsites.geojson")
     .then(response => {
@@ -965,10 +966,18 @@ async function exampleprocess() {
         uploadTrainingData();
       }
     })
-  setTimeout(3000);
-  alert("now the model is calculated... This will take a couple of minutes")
+  document.getElementById('train-model-btn').style.display = 'block';
+  setTimeout(() => {
+    alert("now the model is calculated... This will take a couple of minutes")
+  }, 3000);
+
   await startDownload('model');
   alert("model calculation done! Selecting newly trained model and calculating prediction for selected area")
-  setTimeout(3000, startDownload('Classification'));
-  
+  document.getElementById('loading-spinner-map').style.display = 'block';
+
+  setTimeout(async () => {
+    await startDownload('Classification');
+  }, 3000);
+  document.getElementById('loading-spinner-map').style.display = 'none';
+
 }
