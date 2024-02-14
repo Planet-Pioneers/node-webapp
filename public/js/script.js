@@ -268,7 +268,7 @@ async function uploadTrainingData() {
       map.fitBounds(geoJsonLayer.getBounds());
       alert("trainingdata is valid!")
     } else {
-      console.log("No EPSG:: code found in the string.");
+      console.log("No EPSG: code found in the string.");
     }
 
   } else {
@@ -308,7 +308,7 @@ function drawPopup(layer) {
 
       // Open a popup with date input fields and layer coordinates
       layer.bindPopup(`
-        <label for="start-date">Date:</label>
+        <label for="start-date">Startdate for monthly aggregation:</label>
         <input type="date" id="start-date"><br>
         <p>Layer Coordinates: ${coordinatesString}</p>
         <button onclick="saveTime()">Save Time</button>
@@ -347,7 +347,7 @@ function saveTime() {
       map.closePopup();
     } else {
       // Display an error message to the user
-      alert('Please select a time in the past');
+      alert('Please select a time at least 30 days in the past');
     }
   } else {
     // Display an error message if either start or end date is missing

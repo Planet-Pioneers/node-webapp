@@ -13,33 +13,32 @@ er die Ergebnisse der Klassifizierung in einer Karte und stellt sie dem Nutzer �
 Download-Funktion als GeoTIFF zur Verfügung
 ## Installation
 
-Klonen Sie das Repository auf Ihrem lokalen System.
-Installieren Sie die erforderlichen Abhängigkeiten mit
+Klonen Sie das Repository auf Ihr lokales System und führen folgenden Befehl aus
 
-oder
 ```bash
 Docker-compose up 
 ```
 Öffnen Sie die Website in ihrem browser auf localhost:3000/
 
 ## Verwendung
-**1. Schritt:** Trainiertes Model auswählen <br>
-**2. Schritt:** Auswahl des Interessensgebiets in der Karte durch Einzeichnen eines Rechtecks, alternativ: Upload oder Textfeld <br>
+**1. Schritt:** Auswahl des Interessensgebiets in der Karte durch Einzeichnen eines Rechtecks, alternativ: Upload oder Textfeld<br>
+**2. Schritt:** Bereits trainiertes Model auswählen oder neues Model trainieren<br>
 **3. Schritt:** Datum auswählen und speichern <br>
 **4. Schritt:** Auswahl der Auflösung <br>
-**5. Schritt:** Berechnung starten <br>
-**6. Schritt:** Download ausführen
+**5. Schritt:** Berechnung starten (classification) oder wolkenfreies Echtfarbkomposit berechnen<br>
+**6. Schritt:** Berechnetes Ergebnis (.tif) oder model (.rds) downloaden
 
 ## Hinweise
-- Das ausgewählte Datum muss mindestens 4 Wochen in der Vergangenheit liegen (3. Schritt)
+- Das ausgewählte Datum muss mindestens 4 Wochen in der Vergangenheit liegen um monatliche Aggregation berechnen zu können (3. Schritt)
 - Trainigsdaten (labelled Polygons) sind als GeoJSON in folgender Struktur hochzuladen: (1. Schritt)
     - type: FeatureCollection
     - crs: { "type": "name", "properties": { "name": CRS } }
     - features : [
-      - properties: { Label: mylabel }, geometry: { type: Polygon, coordinates: [[[ ... ]]]
+      - properties: { Label: mylabel }, geometry: { type: Polygon, coordinates: [[[ ... ]]] }
      ]
+- Verfügbare crs für trainingsdaten: EPSG:32632, EPSG:4326, EPSG:4269, EPSG:3857
 - Bei Berechnungen  die länger als 5 Minuten dauern, bricht bei uns die Server-connection ab, wenn der Server auf AWS läuft
-- Wenn ein Zeitraum und Ort ausgewählt wird, wird ein stac call gemacht, um sicherzustellen, dass es genug passenden Satellitenbilder gibt, jedoch stimmt das Ergebnis aus unserem stac call nicht mit dem openeocubes stac call überein. Wenn also openeocubes keine Bilder findet, wird ein Error geworfen, der im Frontend nicht gecatched wird und die Berechnung abbricht  
+- Wenn ein Zeitraum und Ort ausgewählt wird, wird ein stac call gemacht, um sicherzustellen, dass es genug passenden Satellitenbilder gibt, jedoch stimmt das Ergebnis aus unserem stac call nicht mit dem openeocubes stac call überein. Wenn also openeocubes keine Bilder findet, wird ein Error geworfen, der im Frontend nicht gecatched wird und die Berechnung bricht ab  
 
 ## Verwendete Technologien
 Frontend:
@@ -48,15 +47,11 @@ Frontend:
 
 Backend:
 - R
-- Docker
-- MongoDB (Localhost: 27017)
 - OpenEO (Lizenz: Apache. 2.0)
 
-Organisation
+Organisation:
 - GitHub
 
-Entwicklungsumgebung
-- Visual Studio Code
 
 ## Entwickler*innen des Projektes
 Planet Pioneers <br>
